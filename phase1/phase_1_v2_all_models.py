@@ -12,16 +12,21 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 OUTPUT_DIR = "alignment_results"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+
+from huggingface_hub import login
+
+login(token="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")
+
 MODELS = {
-    "Llama2-7b": "meta-llama/Llama-2-7b-chat-hf",
-    "Llama3-8b": "meta-llama/Meta-Llama-3-8B-Instruct",
+    # "Llama2-7b": "meta-llama/Llama-2-7b-chat-hf",
+    # "Llama3-8b": "meta-llama/Meta-Llama-3-8B-Instruct",
     "Vicuna-7b": "lmsys/vicuna-7b-v1.5",
     "Mistral-7b": "mistralai/Mistral-7B-Instruct-v0.2",
     "Zephyr-7b": "HuggingFaceH4/zephyr-7b-beta",
     "Hermes-2": "NousResearch/Nous-Hermes-2-Mistral-7B-DPO",
     "Starling-7b": "berkeley-nest/Starling-LM-7B-alpha",
     "OpenChat-3.5": "openchat/openchat_3.5",
-    "Gemma-7b": "google/gemma-7b-it",
+    # "Gemma-7b": "google/gemma-7b-it",
     "Phi-2": "microsoft/phi-2",
     "Orca-2-7b": "microsoft/Orca-2-7b",
     "Qwen1.5-7b": "Qwen/Qwen1.5-7B-Chat",
