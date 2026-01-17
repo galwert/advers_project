@@ -46,7 +46,7 @@ TOP_K = 10
 
 # --- Load sentences ---
 dataset = load_dataset("wikitext", "wikitext-2-v1", split="train")
-sentences = [x['text'] for x in dataset if 50 < len(x['text']) < 200][:N_SAMPLES]
+sentences = [x['text'] for x in dataset][:N_SAMPLES]
 print(f"Loaded {len(sentences)} sentences")
 
 # --- Phase 1: Extract and cache embeddings for all models ---
