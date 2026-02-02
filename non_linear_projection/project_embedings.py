@@ -1,3 +1,10 @@
+from tqdm import tqdm
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from datasets import load_dataset
+import os
+import h5py
+
 def extract_hidden_states(model, tokenizer, sentences, layer_idx, batch_size=8, device='cuda'):
     model.eval()
     embeddings = []
@@ -52,3 +59,13 @@ def extract_and_save_llm_pairs(
         f.create_dataset(second_model, data=emb_2.numpy())
         f.attrs['layer_idx'] = layer_idx
         f.attrs['num_samples'] = len(sentences)
+
+def main():
+    # --- CONFIG ---
+    model_a = "meta-llama/Llama-2-7b-chat-hf"
+    model_b = "mistralai/Mistral-7B-Instruct-v0.1"
+    extract_and_save_llm_pairs(model_a, model_b, save_path="")
+
+
+if __name__ == '__main__':
+    main()
