@@ -1,3 +1,18 @@
+#!/usr/bin/env python3
+"""
+Cross-Model Adversarial Attack Transfer Evaluation (Phase 2)
+
+Takes GCG adversarial suffixes optimized on source models and evaluates their
+transfer effectiveness across all 20 target models. For each (source, suffix,
+target) triple, generates the target model's response to the adversarial prompt
+and saves it for later scoring by the LLM judge (llm_judge.py).
+
+Supports resume: already-completed (target, prompt) pairs are skipped.
+
+Usage:
+    python advers_attack.py
+"""
+
 import pandas as pd
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -5,39 +20,38 @@ import os
 import csv
 
 # --- CONFIGURATION ---
-INPUT_SUFFIXES = "outputs/advbench_suffixes_all_models.csv"  # The file with the suffixes (from Phase 2A)
-OUTPUT_RESPONSES = "outputs/phase2_transfer_results.csv"  # The new file with the ACTUAL text responses
+INPUT_SUFFIXES = "../outputs/advbench_suffixes_all_models_fixed.csv"
+OUTPUT_RESPONSES = "../outputs/phase2_transfer_results_500.csv"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-# List of models to test.
-# Make sure to include both your Source models (to verify jailbreak) and Target models (to test transfer).
+# All 20 models used in the study
 TARGET_MODELS = [
-    # --- The Llama Family (Baseline) ---
+    # --- The Llama Family ---
     ("Llama2-7b", "meta-llama/Llama-2-7b-chat-hf"),
     ("Llama3-8b", "meta-llama/Meta-Llama-3-8B-Instruct"),
     ("Vicuna-7b", "lmsys/vicuna-7b-v1.5"),
 
-    # --- The Mistral Family (Strong/Sparse) ---
+    # --- The Mistral Family ---
     ("Mistral-7b", "mistralai/Mistral-7B-Instruct-v0.2"),
     ("Zephyr-7b", "HuggingFaceH4/zephyr-7b-beta"),
     ("Hermes-2", "NousResearch/Nous-Hermes-2-Mistral-7B-DPO"),
     ("Starling-7b", "berkeley-nest/Starling-LM-7B-alpha"),
     ("OpenChat-3.5", "openchat/openchat_3.5"),
 
-    # --- Google & Microsoft (Different Architectures) ---
+    # --- Google & Microsoft ---
     ("Gemma-7b", "google/gemma-7b-it"),
-    ("Phi-2", "microsoft/phi-2"),  # Small but distinct geometry
+    ("Phi-2", "microsoft/phi-2"),
 
-    # --- The "Eastern" Models (Different Training Data) ---
+    # --- CJK-trained Models ---
     ("Qwen1.5-7b", "Qwen/Qwen1.5-7B-Chat"),
     ("Yi-6b", "01-ai/Yi-6B-Chat"),
     ("Baichuan2-7b", "baichuan-inc/Baichuan2-7B-Chat"),
     ("DeepSeek-7b", "deepseek-ai/deepseek-llm-7b-chat"),
     ("InternLM2-7b", "internlm/internlm2-chat-7b"),
 
-    # --- Distinct Architectures (For Robustness) ---
+    # --- Other Architectures ---
     ("Falcon-7b", "tiiuae/falcon-7b-instruct"),
-    ("Solar-10.7b", "upstage/SOLAR-10.7B-Instruct-v1.0"), # Slightly larger, good test
+    ("Solar-10.7b", "upstage/SOLAR-10.7B-Instruct-v1.0"),
     ("Orca-2-7b", "microsoft/Orca-2-7b"),
     ("NeuralChat-7b", "Intel/neural-chat-7b-v3-1"),
     ("StableZephyr-3b", "stabilityai/stablelm-zephyr-3b"),
@@ -126,12 +140,10 @@ if __name__ == "__main__":
                 full_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
                 response_only = full_text.replace(full_input, "").strip()
 
-                # --- FIX IS HERE: Use 'source_model', not 'source_name' ---
-                print(f"[Generated] {source_model} -> {target_name}: {response_only[:50]}...")
+                print(f"[Generated] {source_model} -> {target_name}: {response_only}...")
 
-                # Prepare Result Row
                 result_row = {
-                    "source_model": source_model,  # Correct variable
+                    "source_model": source_model,
                     "target_model": target_name,
                     "prompt": prompt,
                     "suffix": suffix,

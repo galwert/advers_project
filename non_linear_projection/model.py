@@ -13,6 +13,8 @@ class EmbeddingProjector(nn.Module):
         )
 
     def forward(self, x):
+        # Ensure input dtype matches model weights
+        x = x.to(self.net[0].weight.dtype)
         return F.normalize(self.net(x), dim=-1)
 
 

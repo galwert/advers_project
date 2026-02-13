@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Data / model artifacts
+*.h5
+*.bin
+*.safetensors
+*.zip
+phase3/adapters/
+
+# Output directories (large experiment results)
+phase1/geometry_output/
+phase1/geometry_output_v2/
+phase1/patchscopes_output/
+phase1/experiment_results/
+phase1/correlation_plots/
+phase1/correlation_plots_v2/
+
+# External repos
+crl-llm-defense/
+
+# Images (add specific ones manually if needed)
+*.png
+
+# Large model weight dirs
+non_linear_projection/models_with_different_lambdas/
