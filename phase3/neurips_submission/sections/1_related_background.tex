@@ -1,0 +1,34 @@
+\section{Related Work \& Background}
+\label{sec:related}
+
+\paragraph{Adversarial attacks and transferability.}
+Adversarial transferability was first observed in vision~\citep{goodfellow2015explaining, papernot2017practical}, with Demontis et al.~\citep{demontis2019adversarial} attributing it to shared gradients and decision-boundary geometry. In NLP, Wallace et al.~\citep{wallace2019universal} first demonstrated universal adversarial triggers, a line extended to LLMs by GCG~\citep{zou2023universal}, whose suffixes transfer from surrogates (e.g., Vicuna~\citep{vicuna}) to closed models (GPT-4~\citep{openai2023gpt4}). Other jailbreak methods include semantic rewriting (PAIR~\citep{pair}, TAP~\citep{tap}), genetic search (AutoDAN~\citep{autodan}), and automated red teaming~\citep{perez2022redteaming}. Wei et al.~\citep{wei2024jailbroken} taxonomize the failure modes that enable them.
+
+\paragraph{LLM safety defenses.}
+Modern LLMs are aligned through RLHF~\citep{ouyang2022training} or constitutional AI~\citep{bai2022constitutional}, but aligned models remain brittle---even benign fine-tuning can compromise safety~\citep{qi2023finetuning}. Post-hoc defenses fall into two categories. \emph{Input-level} methods include perturbation-based smoothing (SmoothLLM~\citep{smoothllm}) and perplexity filtering~\citep{jain2023baseline}; these are attack-specific and struggle with semantic attacks. \emph{Representation-engineering} methods modify internal activations: Circuit Breakers~\citep{zou2024circuitbreakers} \mbox{short-circuit} harmful hidden states, ReFAT~\citep{refat} adversarially trains on refusal features, LAT~\citep{lat} trains on latent perturbations, RepBend~\citep{repbend} bends representation geometry toward safety, and CRL~\citep{crl} applies contrastive learning to separate harmful and benign representations. Schwinn and Geisler~\citep{revisiting_cb} show that continuous embedding-space attacks (PGD~\citep{madry2018towards}) break all representation-engineering defenses, a limitation shared by our method. Critically, \textbf{all existing defenses are evaluated exclusively against same-model attacks}; none address cross-model transfer.
+
+\paragraph{Representation similarity.}
+Comparing learned representations across networks is central to our approach. SVCCA~\citep{raghu2017svcca} introduced canonical correlation analysis for comparing layer activations. CKA~\citep{kornblith2019similarity} improved on this with a kernel-based similarity index that is invariant to orthogonal transformation and isotropic scaling, and that operates on Gram matrices---making it agnostic to hidden dimension. Representation engineering~\citep{repeng} showed that linear directions in activation space encode high-level concepts (e.g., honesty, harmfulness), enabling targeted steering. Arditi et al.~\citep{arditi2024refusal} further demonstrated that refusal behavior is mediated by a single direction, and Li et al.~\citep{li2023iti} showed that inference-time intervention along such directions can elicit desired behaviors. Our refusal-direction loss builds on these insights.
+
+\paragraph{Concurrent work on similarity and adversarial transfer.}
+Several concurrent papers establish the similarity--transfer link that motivates our defense: nearest-neighbor similarity predicts jailbreak transfer across 380 model pairs~\citep{angell2025transfer}; training data overlap causes representation similarity which causes transfer~\citep{li2025causes}; suffix-level features~\citep{ball2025suffixes} and network-level metrics~\citep{klause2025network} further predict transferability; and representation-space attacks fail where data-space attacks succeed~\citep{gupta2025repspace}. These works are diagnostic---ours is the first to use the similarity--transfer link as a \emph{defense mechanism}.
+
+\paragraph{Threat model and motivating evidence.}
+We consider an attacker who optimizes a GCG suffix on a \emph{source} model and applies it to a different \emph{target}; the defender has no access to attack strings at training time. We hypothesize that this transfer succeeds because aligned LLMs share similar internal geometric structure. To test this, we compute pairwise representation similarity across 20 LLMs spanning five architecture families and measure GCG suffix transfer ASR across all pairs. A na\"ive global correlation is confounded by target-inherent robustness, so we condition on architectural family. Within same-family pairs, high-CKA pairs show $3.3\times$ higher transfer ASR than low-CKA pairs (\cref{fig:bar_transfer}, \cref{tab:family_corr}). We treat this as \textbf{motivating evidence} and confirm causally via ablation: CKA repulsion alone achieves near-zero cross-model ASR (\cref{sec:ablation}, Run~2). Our defense explicitly \textbf{breaks the representation similarity} between a defender model $\mathcal{M}_d$ and a reference anchor model $\mathcal{M}_a$, rendering transferred attacks ineffective while preserving benign behavior.
+
+\input{figs/fig_transfer}
+
+\begin{table}[t]
+\centering
+\caption{Spearman $\rho$ between geometric similarity and GCG transfer ASR. {*}$p<0.05$, {**}$p<0.01$.}
+\label{tab:family_corr}
+\begin{tabular}{lcccc}
+\toprule
+Metric & Same-fam $\rho$ & $p$ & Cross-fam $\rho$ & $p$ \\
+\midrule
+var\_explained\_corr & $+0.360$** & 0.010 & $-0.039$ & 0.54 \\
+rsa\_harm            & $+0.281$*  & 0.046 & $-0.012$ & 0.85 \\
+distance\_ratio      & $+0.272$   & 0.054 & $-0.031$ & 0.62 \\
+\bottomrule
+\end{tabular}
+\end{table}

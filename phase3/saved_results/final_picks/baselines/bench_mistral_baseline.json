@@ -1,0 +1,21 @@
+{
+  "defender": "mistral",
+  "model_id": "mistralai/Mistral-7B-Instruct-v0.2",
+  "anchor": null,
+  "baseline": {
+    "orbench_refusal_rate": 0.221379833206975,
+    "xstest_refusal_rate": 0.08,
+    "mtbench_score": 6.38125,
+    "mtbench_per_category": {
+      "writing": 6.5,
+      "roleplay": 6.25,
+      "reasoning": 6.55,
+      "math": 6.75,
+      "coding": 7.05,
+      "extraction": 6.45,
+      "stem": 5.7,
+      "humanities": 5.8
+    },
+    "mmlu_accuracy": 0.5932203389830508
+  }
+}

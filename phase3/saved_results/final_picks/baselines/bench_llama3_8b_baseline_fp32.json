@@ -1,0 +1,21 @@
+{
+  "defender": "llama3",
+  "model_id": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "anchor": null,
+  "baseline": {
+    "orbench_refusal_rate": 0.6603487490523123,
+    "xstest_refusal_rate": 0.036,
+    "mmlu_accuracy": 0.66735507762427,
+    "mtbench_score": 6.4375,
+    "mtbench_per_category": {
+      "writing": 6.1,
+      "roleplay": 6.3,
+      "reasoning": 6.6,
+      "math": 7.15,
+      "coding": 6.25,
+      "extraction": 6.75,
+      "stem": 6.0,
+      "humanities": 6.35
+    }
+  }
+}

@@ -1,0 +1,9 @@
+model,model_id,asr_self,asr_anchor,asr_other,bgr,xstest,orbench,mtbench,mmlu
+llama2_13b,meta-llama/Llama-2-13b-chat-hf,0.0,0.0,0.0,0.0,,,,
+llama3,meta-llama/Meta-Llama-3-8B-Instruct,5.0,2.0,1.0,0.0,3.6,66.0,6.42,66.7
+nemo,mistralai/Mistral-Nemo-Instruct-2407,31.0,25.0,16.0,0.0,2.8,2.4,6.42,
+qwen,Qwen/Qwen1.5-7B-Chat,40.0,4.0,2.0,1.1,21.2,46.1,6.46,60.4
+qwen14b,Qwen/Qwen1.5-14B-Chat,3.0,1.0,3.0,2.2,,,,
+vicuna,lmsys/vicuna-7b-v1.5,5.0,5.0,6.0,0.0,9.6,28.0,5.67,
+yi9b,01-ai/Yi-1.5-9B-Chat,18.0,22.0,14.0,0.0,1.6,9.2,6.34,69.7
+mistral,mistralai/Mistral-7B-Instruct-v0.2,77.0,30.0,29.0,0.0,,,,

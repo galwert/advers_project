@@ -1,0 +1,20 @@
+{
+  "defender": "mistral_nemo",
+  "model_id": "mistralai/Mistral-Nemo-Instruct-2407",
+  "anchor": null,
+  "baseline": {
+    "orbench_refusal_rate": 0.024260803639120546,
+    "xstest_refusal_rate": 0.028,
+    "mtbench_score": 6.425,
+    "mtbench_per_category": {
+      "writing": 6.8,
+      "roleplay": 5.7,
+      "reasoning": 7.05,
+      "math": 6.5,
+      "coding": 6.35,
+      "extraction": 6.35,
+      "stem": 6.5,
+      "humanities": 6.15
+    }
+  }
+}

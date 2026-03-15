@@ -1,0 +1,408 @@
+{
+  "description": "Best balanced CKA repulsion defense configs per model (WildGuard judge)",
+  "date": "2026-03-12",
+  "baselines": {
+    "benchmarks": {
+      "mistral": {
+        "xs": 8.0,
+        "or": 22.1379833206975,
+        "mt": 6.38125,
+        "mmlu": 59.32203389830508
+      },
+      "llama3": {
+        "xs": 3.5999999999999996,
+        "or": 65.95905989385898,
+        "mt": 6.425,
+        "mmlu": 66.74975074775674
+      },
+      "qwen7b": {
+        "xs": 21.2,
+        "or": 46.095526914329035,
+        "mt": 6.45625,
+        "mmlu": 60.44722973935337
+      },
+      "vicuna": {
+        "xs": 9.6,
+        "or": 27.975739196360877,
+        "mt": 5.675,
+        "mmlu": null
+      },
+      "yi9b": {
+        "xs": 1.6,
+        "or": 9.249431387414708,
+        "mt": 6.34375,
+        "mmlu": 69.66956274035037
+      },
+      "nemo": {
+        "xs": 2.8000000000000003,
+        "or": 2.4260803639120545,
+        "mt": 6.425,
+        "mmlu": null
+      },
+      "qwen14b": {
+        "xs": 24.4,
+        "or": 54.66262319939348,
+        "mt": 6.53125,
+        "mmlu": null
+      }
+    },
+    "attacks": {
+      "mistral": {
+        "standard_gcg_asr": 32.0,
+        "adaptive_gcg_asr": 76.0
+      },
+      "llama3": {
+        "standard_gcg_asr": 0.0,
+        "adaptive_gcg_asr": 2.0
+      },
+      "qwen7b": {
+        "standard_gcg_asr": 3.0,
+        "adaptive_gcg_asr": 0
+      },
+      "vicuna": {
+        "standard_gcg_asr": 3.0,
+        "adaptive_gcg_asr": 86.0
+      },
+      "yi9b": {
+        "standard_gcg_asr": 19.0,
+        "adaptive_gcg_asr": 0
+      },
+      "nemo": {
+        "standard_gcg_asr": 20.0,
+        "adaptive_gcg_asr": 70.0
+      },
+      "qwen14b": {
+        "standard_gcg_asr": 2.0
+      }
+    }
+  },
+  "best_balanced_configs": {
+    "mistral_anc_y_ax": {
+      "model": "mistral",
+      "hyperparameters": {
+        "anchor_id": "01-ai/Yi-1.5-9B-Chat",
+        "defender_id": "mistralai/Mistral-7B-Instruct-v0.2",
+        "alignment": "cka",
+        "alpha": "0.15",
+        "beta": "1.0",
+        "gamma": "1.0",
+        "delta": "0.04",
+        "epsilon": "0.8",
+        "zeta": "0.0",
+        "scope": "all",
+        "precision": "fp16",
+        "anchor_layers": "24",
+        "defender_layers": "16",
+        "training_data": "500 benign (200 borderline) + 500 harmful + 0 gcg"
+      },
+      "adapter_path": "adapters/mistral_anc_y_ax/",
+      "metrics": {
+        "asr_self": 0.0,
+        "asr_anchor": 0.0,
+        "asr_other": 0.0,
+        "bgr": 0.0,
+        "ppl": 3.359335422515869,
+        "cka_score": 0.7408543825149536,
+        "xstest": 11.200000000000001,
+        "xstest_delta": 3.2,
+        "orbench": 53.070507960576194,
+        "orbench_delta": 30.9,
+        "mt_bench": 6.2875,
+        "mt_bench_delta": -0.09
+      }
+    },
+    "llama3_lx_d": {
+      "model": "llama3",
+      "hyperparameters": {
+        "anchor_id": "Qwen/Qwen1.5-7B-Chat",
+        "defender_id": "meta-llama/Meta-Llama-3-8B-Instruct",
+        "alignment": "cka",
+        "alpha": "0.1",
+        "beta": "1.0",
+        "gamma": "2.5",
+        "delta": "0.08",
+        "epsilon": "0.8",
+        "zeta": "0.0",
+        "scope": "benign_only",
+        "precision": "fp16",
+        "anchor_layers": "16",
+        "defender_layers": "16",
+        "training_data": "500 benign (200 borderline) + 500 harmful + 0 gcg"
+      },
+      "adapter_path": "adapters/llama3_lx_d/",
+      "metrics": {
+        "asr_self": 1.0,
+        "asr_anchor": 2.0,
+        "asr_other": 0.0,
+        "bgr": 0.0,
+        "ppl": 2.3860650062561035,
+        "cka_score": 0.9396883845329285,
+        "xstest": 1.2,
+        "xstest_delta": -2.4,
+        "orbench": 67.93025018953753,
+        "orbench_delta": 2.0,
+        "mt_bench": 6.61875,
+        "mt_bench_delta": 0.19
+      }
+    },
+    "qwen7b_cka_benign": {
+      "model": "qwen7b",
+      "hyperparameters": {
+        "anchor_id": "meta-llama/Meta-Llama-3-8B-Instruct",
+        "defender_id": "Qwen/Qwen1.5-7B-Chat",
+        "alignment": "cka",
+        "alpha": "0.15",
+        "beta": "1.0",
+        "gamma": "3.2",
+        "delta": "0.03",
+        "epsilon": "0.5",
+        "zeta": "0.0",
+        "scope": "benign_only",
+        "precision": "fp32",
+        "training_data": "500 benign + 500 harmful"
+      },
+      "adapter_path": "adapters/qwen7b_cka_benign/",
+      "metrics": {
+        "asr_self": 0.0,
+        "asr_anchor": 1.0,
+        "asr_other": 0.0,
+        "bgr": 0.0,
+        "ppl": 2.307492971420288,
+        "cka_score": 0.9139538407325745,
+        "xstest": 12.0,
+        "xstest_delta": -9.2,
+        "orbench": 40.0303260045489,
+        "orbench_delta": -6.1,
+        "mt_bench": 6.23125,
+        "mt_bench_delta": -0.22
+      }
+    },
+    "vicuna_vt_a": {
+      "model": "vicuna",
+      "hyperparameters": {
+        "anchor_id": "Qwen/Qwen1.5-7B-Chat",
+        "defender_id": "lmsys/vicuna-7b-v1.5",
+        "alignment": "cka",
+        "alpha": "0.05",
+        "beta": "1.5",
+        "gamma": "1.5",
+        "delta": "0.03",
+        "epsilon": "0.6",
+        "zeta": "0.0",
+        "scope": "all",
+        "precision": "fp16",
+        "anchor_layers": "16",
+        "defender_layers": "16",
+        "training_data": "500 benign + 500 harmful"
+      },
+      "adapter_path": "adapters/vicuna_vt_a/",
+      "metrics": {
+        "asr_self": 4.0,
+        "asr_anchor": 6.0,
+        "asr_other": 6.0,
+        "bgr": 0.0,
+        "ppl": 3.0078494548797607,
+        "cka_score": 0.9455439448356628,
+        "xstest": 6.0,
+        "xstest_delta": -3.6,
+        "orbench": 27.217589082638362,
+        "orbench_delta": -0.8,
+        "mt_bench": 5.921875,
+        "mt_bench_delta": 0.25
+      }
+    },
+    "yi9b_ya_a": {
+      "model": "yi9b",
+      "hyperparameters": {
+        "anchor_id": "mistralai/Mistral-7B-Instruct-v0.2",
+        "defender_id": "01-ai/Yi-6B-Chat",
+        "alignment": "cka",
+        "alpha": "0.15",
+        "beta": "1.0",
+        "gamma": "1.5",
+        "delta": "0.12",
+        "epsilon": "0.3",
+        "zeta": "0.0",
+        "scope": "all",
+        "precision": "fp16",
+        "anchor_layers": "16",
+        "defender_layers": "16",
+        "training_data": "500 benign + 500 harmful + 0 gcg"
+      },
+      "adapter_path": "adapters/yi9b_ya_a/",
+      "metrics": {
+        "asr_self": 3.0,
+        "asr_anchor": 0.0,
+        "asr_other": 0.0,
+        "bgr": 0.0,
+        "ppl": 2.3396615982055664,
+        "cka_score": 0.1912120133638382,
+        "xstest": 3.5999999999999996,
+        "xstest_delta": 2.0,
+        "orbench": 20.621683093252464,
+        "orbench_delta": 11.4,
+        "mt_bench": 6.35625,
+        "mt_bench_delta": 0.01
+      }
+    },
+    "nemo_ab2_ax": {
+      "model": "nemo",
+      "hyperparameters": {
+        "anchor_id": "Qwen/Qwen1.5-7B-Chat",
+        "defender_id": "mistralai/Mistral-Nemo-Instruct-2407",
+        "alignment": "cka",
+        "alpha": "0.12",
+        "beta": "1.0",
+        "gamma": "1.5",
+        "delta": "0.1",
+        "epsilon": "0.6",
+        "zeta": "0.0",
+        "scope": "all",
+        "precision": "fp16",
+        "anchor_layers": "16",
+        "defender_layers": "20",
+        "training_data": "500 benign (200 borderline) + 500 harmful + 0 gcg"
+      },
+      "adapter_path": "adapters/nemo_ab2_ax/",
+      "metrics": {
+        "asr_self": 2.0,
+        "asr_anchor": 1.0,
+        "asr_other": 0.0,
+        "bgr": 0.0,
+        "ppl": 2.601945161819458,
+        "cka_score": 0.9053469300270081,
+        "xstest": 2.8000000000000003,
+        "xstest_delta": 0.0,
+        "orbench": 31.99393479909022,
+        "orbench_delta": 29.6,
+        "mt_bench": 6.35,
+        "mt_bench_delta": -0.08
+      }
+    },
+    "qwen14b_q14_b": {
+      "model": "qwen14b",
+      "hyperparameters": {
+        "anchor_id": "meta-llama/Meta-Llama-3-8B-Instruct",
+        "defender_id": "Qwen/Qwen1.5-14B-Chat",
+        "alignment": "cka",
+        "alpha": "0.15",
+        "beta": "1.0",
+        "gamma": "3.2",
+        "delta": "0.03",
+        "epsilon": "0.5",
+        "zeta": "0.0",
+        "scope": "harmful_only",
+        "precision": "fp16",
+        "anchor_layers": "16",
+        "defender_layers": "20",
+        "training_data": "500 benign (200 borderline) + 500 harmful + 0 gcg"
+      },
+      "adapter_path": "adapters/qwen14b_q14_b/",
+      "metrics": {
+        "asr_self": 1.0,
+        "asr_anchor": 1.0,
+        "asr_other": 0.0,
+        "bgr": 1.1111111111111112,
+        "ppl": 2.593219041824341,
+        "cka_score": 0.8832525610923767,
+        "xstest": 26.0,
+        "xstest_delta": 1.6,
+        "orbench": 63.07808946171342,
+        "orbench_delta": 8.4,
+        "mt_bench": 6.3375,
+        "mt_bench_delta": -0.19
+      }
+    },
+    "mistral7b_abl_weak": {
+      "model": "mistral",
+      "hyperparameters": {
+        "anchor_id": "meta-llama/Llama-2-7b-chat-hf",
+        "defender_id": "mistralai/Mistral-7B-Instruct-v0.2",
+        "alpha": "0.0",
+        "beta": "1.0",
+        "gamma": "0.3",
+        "delta": "0.0",
+        "epsilon": "0.0",
+        "scope": "harmful_only",
+        "precision": "fp32"
+      },
+      "adapter_path": "adapters/mistral7b_abl_weak/",
+      "metrics": {
+        "asr_self": 0.0,
+        "asr_anchor": 1.0,
+        "asr_other": 1.0,
+        "bgr": 1.1111111111111112,
+        "ppl": 3.928683280944824,
+        "cka_score": 0.7401689887046814,
+        "xstest": 6.0,
+        "xstest_delta": -2.0,
+        "orbench": 6.747536012130402,
+        "orbench_delta": -15.4,
+        "mt_bench": 5.65625,
+        "mt_bench_delta": -0.72
+      }
+    },
+    "mistral_anc_q_ax": {
+      "model": "mistral",
+      "hyperparameters": {
+        "anchor_id": "Qwen/Qwen1.5-7B-Chat",
+        "defender_id": "mistralai/Mistral-7B-Instruct-v0.2",
+        "alpha": "0.15",
+        "beta": "1.0",
+        "gamma": "1.0",
+        "delta": "0.04",
+        "epsilon": "0.8",
+        "scope": "all",
+        "precision": "fp16",
+        "anchor_layers": "16",
+        "defender_layers": "16"
+      },
+      "adapter_path": "adapters/mistral_anc_q_ax/",
+      "metrics": {
+        "asr_self": 6.0,
+        "asr_anchor": 9.0,
+        "asr_other": 7.000000000000001,
+        "bgr": 0.0,
+        "ppl": 3.2570815086364746,
+        "cka_score": 0.673564076423645,
+        "xstest": 10.8,
+        "xstest_delta": 2.8,
+        "orbench": 31.15996967399545,
+        "orbench_delta": 9.1,
+        "mt_bench": 6.13125,
+        "mt_bench_delta": -0.25
+      }
+    },
+    "mistral_anc_l3_ax": {
+      "model": "mistral",
+      "hyperparameters": {
+        "anchor_id": "meta-llama/Meta-Llama-3-8B-Instruct",
+        "defender_id": "mistralai/Mistral-7B-Instruct-v0.2",
+        "alpha": "0.15",
+        "beta": "1.0",
+        "gamma": "1.0",
+        "delta": "0.04",
+        "epsilon": "0.8",
+        "scope": "all",
+        "precision": "fp16",
+        "anchor_layers": "16",
+        "defender_layers": "16"
+      },
+      "adapter_path": "adapters/mistral_anc_l3_ax/",
+      "metrics": {
+        "asr_self": 0.0,
+        "asr_anchor": 1.0,
+        "asr_other": 0.0,
+        "bgr": 0.0,
+        "ppl": 3.1750307083129883,
+        "cka_score": 0.6307476162910461,
+        "xstest": 10.8,
+        "xstest_delta": 2.8,
+        "orbench": 57.16451857467779,
+        "orbench_delta": 35.1,
+        "mt_bench": 6.24375,
+        "mt_bench_delta": -0.14
+      }
+    }
+  }
+}

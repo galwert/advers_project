@@ -206,6 +206,8 @@ def run_pair(
     seed: int = 42,
     baseline_cache_dir: Optional[str] = None,
     verbose: bool = False,
+    precision: str = "4bit",
+    cka_scope: Optional[str] = None,
 ):
     """Train and evaluate defense for one (anchor, defender) pair."""
     is_self = anchor == defender
@@ -219,6 +221,10 @@ def run_pair(
     row["anchor"] = anchor
     row["defender"] = defender
     row["is_self_defense"] = is_self
+
+    # Extra flags shared across train/eval commands
+    extra_precision = ["--precision", precision] if precision != "4bit" else []
+    extra_cka_scope = ["--cka_scope", cka_scope] if cka_scope else []
 
     if dry_run:
         train_cmd = [
@@ -234,7 +240,7 @@ def run_pair(
             "--output_dir", output_dir,
             "--gcg_data_path", gcg_data_path,
             "--seed", str(seed),
-        ]
+        ] + extra_precision + extra_cka_scope
         print(f"  [DRY RUN] Train: {' '.join(train_cmd)}")
         print(f"  [DRY RUN] Eval baseline + defended would follow")
         return
@@ -263,7 +269,7 @@ def run_pair(
                 "--n_eval", str(n_eval),
                 "--baseline",
                 "--output_json", baseline_json,
-            ] + (["--low_memory"] if low_memory else []) + (["--verbose"] if verbose else [])
+            ] + (["--low_memory"] if low_memory else []) + (["--verbose"] if verbose else []) + extra_precision
 
             result = run_command(eval_baseline_cmd, f"Baseline eval: {pair_label}", timeout=3600, gpu=gpu)
             if result.returncode != 0:
@@ -307,7 +313,7 @@ def run_pair(
         "--output_dir", output_dir,
         "--gcg_data_path", gcg_data_path,
         "--seed", str(seed),
-    ]
+    ] + extra_precision + extra_cka_scope
 
     t_train_start = time.time()
     try:
@@ -345,7 +351,7 @@ def run_pair(
         "--gcg_data_path", gcg_data_path,
         "--n_eval", str(n_eval),
         "--output_json", defended_json,
-    ] + (["--low_memory"] if low_memory else []) + (["--verbose"] if verbose else [])
+    ] + (["--low_memory"] if low_memory else []) + (["--verbose"] if verbose else []) + extra_precision
 
     t_eval_start = time.time()
     try:
@@ -447,6 +453,12 @@ def main():
                         help="Include self-defense pairs (anchor==defender). Skipped by default.")
     parser.add_argument("--verbose", action="store_true", default=False,
                         help="Print succeeded attacks and refused benign prompts during evaluation")
+    parser.add_argument("--precision", type=str, default="4bit",
+                        choices=["4bit", "fp16", "fp32"],
+                        help="Model precision: 4bit (NF4 quantization), fp16, or fp32 (default: 4bit)")
+    parser.add_argument("--cka_scope", type=str, default=None,
+                        choices=["all", "harmful_only", "benign_only"],
+                        help="CKA repulsion scope for training (default: not set)")
 
     args = parser.parse_args()
 
@@ -534,6 +546,8 @@ def main():
             seed=args.seed + i,
             baseline_cache_dir=args.baseline_cache_dir,
             verbose=args.verbose,
+            precision=args.precision,
+            cka_scope=args.cka_scope,
         )
 
     print(f"\n\n{'='*70}")

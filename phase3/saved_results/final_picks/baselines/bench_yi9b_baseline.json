@@ -1,0 +1,21 @@
+{
+  "defender": "yi9b",
+  "model_id": "01-ai/Yi-1.5-9B-Chat",
+  "anchor": null,
+  "baseline": {
+    "orbench_refusal_rate": 0.09249431387414708,
+    "xstest_refusal_rate": 0.016,
+    "mmlu_accuracy": 0.6966956274035038,
+    "mtbench_score": 6.34375,
+    "mtbench_per_category": {
+      "writing": 6.75,
+      "roleplay": 6.3,
+      "reasoning": 6.35,
+      "math": 6.65,
+      "coding": 6.9,
+      "extraction": 6.0,
+      "stem": 6.1,
+      "humanities": 5.7
+    }
+  }
+}

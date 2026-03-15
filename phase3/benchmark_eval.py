@@ -68,15 +68,33 @@ MODEL_IDS = {
     "starling": "berkeley-nest/Starling-LM-7B-alpha",
     "phi2": "microsoft/phi-2",
     "orca": "microsoft/Orca-2-7b",
+    # 13B+ models
+    "llama2-13b": "NousResearch/Llama-2-13b-chat-hf",
+    "qwen-14b": "Qwen/Qwen1.5-14B-Chat",
+    "phi3": "microsoft/Phi-3-medium-4k-instruct",
+    "yi9b": "01-ai/Yi-1.5-9B-Chat",
+    "mistral_nemo": "mistralai/Mistral-Nemo-Instruct-2407",
 }
 
-SLOW_TOKENIZER_MODELS = {"llama2", "vicuna", "orca", "mistral", "zephyr", "starling", "yi", "phi2"}
+# Map full HF IDs back to model_type for prompt formatting
+_HF_ID_TO_TYPE = {v.lower(): k for k, v in MODEL_IDS.items()}
+_HF_ID_TO_TYPE["nousresearch/llama-2-13b-chat-hf"] = "llama2"
+_HF_ID_TO_TYPE["meta-llama/llama-2-13b-chat-hf"] = "llama2"
+_HF_ID_TO_TYPE["qwen/qwen1.5-14b-chat"] = "qwen"
+
+SLOW_TOKENIZER_MODELS = {"llama2", "llama2-13b", "vicuna", "orca", "mistral", "zephyr", "starling", "yi", "phi2"}
 
 
 def load_tokenizer(model_id, model_type=None):
     """Load tokenizer with correct settings per model."""
-    use_fast = model_type not in SLOW_TOKENIZER_MODELS if model_type else True
-    tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True, use_fast=use_fast)
+    # Use LlamaTokenizer for Llama-2 (AutoTokenizer in transformers 5.x
+    # loads a generic backend that doesn't decode SentencePiece ▁ properly)
+    if model_type and ("llama2" in model_type.lower()):
+        from transformers import LlamaTokenizer
+        tokenizer = LlamaTokenizer.from_pretrained(model_id)
+    else:
+        use_fast = model_type not in SLOW_TOKENIZER_MODELS if model_type else True
+        tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True, use_fast=use_fast)
     if not tokenizer.pad_token:
         if tokenizer.unk_token:
             tokenizer.pad_token = tokenizer.unk_token
@@ -107,6 +125,28 @@ def get_bnb_config():
         bnb_4bit_compute_dtype=torch.float16,
         bnb_4bit_quant_type="nf4",
     )
+
+
+def get_load_kwargs(precision="4bit"):
+    """Build kwargs for AutoModelForCausalLM.from_pretrained().
+
+    precision: "4bit" (default, NF4 quantization), "fp16", or "fp32".
+
+    For fp16/fp32, uses device_map={"": 0} to force single-GPU placement.
+    device_map="auto" can silently offload layers to CPU, which breaks
+    PeftModel adapter loading/inference.
+    """
+    kwargs = dict(trust_remote_code=True, attn_implementation="eager")
+    if precision == "fp16":
+        kwargs["torch_dtype"] = torch.float16
+        kwargs["device_map"] = {"": 0}
+    elif precision == "fp32":
+        kwargs["torch_dtype"] = torch.float32
+        kwargs["device_map"] = {"": 0}
+    else:  # 4bit
+        kwargs["quantization_config"] = get_bnb_config()
+        kwargs["device_map"] = "auto"
+    return kwargs
 
 
 def format_prompt(text: str, model_type: str) -> str:
@@ -232,13 +272,28 @@ def detect_model_type(model_id: str) -> str:
 # ==========================================
 # LOAD BENCHMARKS
 # ==========================================
-def load_orbench_hard() -> list:
-    """Load OR-Bench Hard-1K from HuggingFace."""
+def load_orbench_hard(exclude_prompts: set = None) -> tuple:
+    """Load OR-Bench Hard-1K from HuggingFace.
+
+    Args:
+        exclude_prompts: Set of prompts to exclude (train split).
+
+    Returns:
+        (full_prompts, held_out_prompts) where held_out_prompts excludes
+        the training set. If exclude_prompts is None, held_out == full.
+    """
     print("[*] Loading OR-Bench Hard-1K...")
     ds = load_dataset("bench-llm/or-bench", "or-bench-hard-1k", split="train")
-    prompts = [row["prompt"] for row in ds]
-    print(f"    Loaded {len(prompts)} prompts")
-    return prompts
+    full_prompts = [row["prompt"] for row in ds]
+    print(f"    Loaded {len(full_prompts)} prompts")
+
+    if exclude_prompts:
+        held_out = [p for p in full_prompts if p not in exclude_prompts]
+        print(f"    After excluding {len(exclude_prompts)} train prompts: {len(held_out)} held-out")
+    else:
+        held_out = full_prompts
+
+    return full_prompts, held_out
 
 
 def load_xstest_safe() -> list:
@@ -402,6 +457,7 @@ def evaluate_refusal_rate(
 def evaluate_mmlu_lmeval(
     model_id: str, adapter_path: str = None,
     batch_size: int = 8, n_shot: int = 5, limit: int = 0,
+    precision: str = "4bit",
 ) -> float:
     """Evaluate MMLU accuracy using lm-evaluation-harness (proper implementation).
 
@@ -409,10 +465,11 @@ def evaluate_mmlu_lmeval(
     and scoring correctly for each model architecture.
     """
     # Build model_args
+    # Use fp16 for MMLU — multiple-choice accuracy is precision-insensitive,
+    # and avoids load_in_4bit kwarg incompatibilities with newer transformers.
     model_args = [
         f"pretrained={model_id}",
-        "load_in_4bit=True",
-        "bnb_4bit_compute_dtype=float16",
+        "dtype=float16",
         "trust_remote_code=True",
     ]
     if adapter_path and os.path.exists(adapter_path):
@@ -425,7 +482,7 @@ def evaluate_mmlu_lmeval(
             "--model_args", ",".join(model_args),
             "--tasks", "mmlu",
             "--num_fewshot", str(n_shot),
-            "--batch_size", str(batch_size),
+            "--batch_size", "auto:4",
             "--output_path", tmpdir,
         ]
         if limit > 0:
@@ -651,7 +708,8 @@ def run_benchmark(
     model_id: str, model_type: str, adapter_path: str = None,
     device: str = "cuda", batch_size: int = 8,
     run_mtbench: bool = False, mtbench_questions: list = None,
-    verbose: bool = False,
+    verbose: bool = False, precision: str = "4bit",
+    orbench_full: list = None, orbench_held_out: list = None,
 ) -> dict:
     """Load model, evaluate all requested benchmarks, unload."""
 
@@ -665,11 +723,7 @@ def run_benchmark(
     tokenizer = load_tokenizer(model_id, model_type)
 
     model = AutoModelForCausalLM.from_pretrained(
-        model_id,
-        quantization_config=get_bnb_config(),
-        device_map="auto",
-        trust_remote_code=True,
-        attn_implementation="eager",
+        model_id, **get_load_kwargs(precision)
     )
 
     sync_model_tokenizer(model, tokenizer)
@@ -746,7 +800,9 @@ def run_benchmark(
     results = {}
 
     # --- OR-Bench ---
-    orbench_prompts = load_orbench_hard()
+    if orbench_full is None:
+        orbench_full, _ = load_orbench_hard()
+    orbench_prompts = orbench_full
     print(f"\n--- OR-Bench Hard ({len(orbench_prompts)} prompts) ---")
     results["orbench"] = evaluate_refusal_rate(
         model, tokenizer, orbench_prompts, model_type, device,
@@ -754,6 +810,16 @@ def run_benchmark(
         verbose=verbose,
     )
     print(f"OR-Bench Refusal Rate: {results['orbench']['refusal_rate']*100:.1f}%")
+
+    # --- OR-Bench Held-Out (test split, excluding training prompts) ---
+    if orbench_held_out is not None and len(orbench_held_out) < len(orbench_prompts):
+        print(f"\n--- OR-Bench Held-Out ({len(orbench_held_out)} prompts) ---")
+        results["orbench_held_out"] = evaluate_refusal_rate(
+            model, tokenizer, orbench_held_out, model_type, device,
+            batch_size=batch_size, max_new_tokens=100, label="OR-Bench Held-Out",
+            verbose=verbose,
+        )
+        print(f"OR-Bench Held-Out Refusal Rate: {results['orbench_held_out']['refusal_rate']*100:.1f}%")
 
     # --- XSTest ---
     xstest_prompts = load_xstest_safe()
@@ -819,15 +885,47 @@ def main():
                              "baseline before running; saves after running if not found.")
     parser.add_argument("--verbose", action="store_true", default=False,
                         help="Print 5 sample generations from each benchmark")
+    parser.add_argument("--precision", type=str, default="4bit",
+                        choices=["4bit", "fp16", "fp32"],
+                        help="Model precision: 4bit (NF4 quantization), fp16, or fp32 (default: 4bit)")
+    parser.add_argument("--exclude_train_prompts", action="store_true",
+                        help="Exclude borderline prompts used during training from OR-Bench eval")
 
     args = parser.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model_type = args.defender.lower()
-    model_id = MODEL_IDS.get(model_type)
-    if not model_id:
-        print(f"[!] Unknown model: {model_type}. Available: {list(MODEL_IDS.keys())}")
-        sys.exit(1)
+    MODEL_TYPE_ALIASES = {"llama2-13b": "llama2", "qwen-14b": "qwen"}
+    defender_arg = args.defender.lower()
+    model_id = MODEL_IDS.get(defender_arg)
+    if model_id:
+        model_type = MODEL_TYPE_ALIASES.get(defender_arg, defender_arg)
+    else:
+        # Treat as full HuggingFace model ID
+        model_id = args.defender
+        model_type = _HF_ID_TO_TYPE.get(defender_arg)
+        if not model_type:
+            # Infer model_type from name
+            name_lower = defender_arg
+            if "llama-2" in name_lower or "llama2" in name_lower:
+                model_type = "llama2"
+            elif "llama-3" in name_lower or "llama3" in name_lower:
+                model_type = "llama3"
+            elif "qwen" in name_lower:
+                model_type = "qwen"
+            elif "mistral" in name_lower:
+                model_type = "mistral"
+            elif "vicuna" in name_lower:
+                model_type = "vicuna"
+            elif "zephyr" in name_lower:
+                model_type = "zephyr"
+            elif "phi" in name_lower:
+                model_type = "phi2"
+            elif "yi" in name_lower:
+                model_type = "yi"
+            else:
+                print(f"[!] Cannot infer model type from: {args.defender}. Use --defender with a known name or HF ID.")
+                sys.exit(1)
+        print(f"[+] Using full HF model ID: {model_id} (type: {model_type})")
 
     batch_size = 4 if args.low_memory else args.batch_size
     run_mmlu = not args.skip_mmlu
@@ -853,6 +951,20 @@ def main():
 
     all_results = {"defender": model_type, "model_id": model_id, "anchor": anchor_used}
 
+    # Load OR-Bench prompts and handle train/test split
+    exclude_prompts = None
+    if args.exclude_train_prompts and adapter_path:
+        bl_json_path = os.path.join(adapter_path, "borderline_train_prompts.json")
+        if os.path.exists(bl_json_path):
+            with open(bl_json_path, 'r') as f:
+                train_prompts = json.load(f)
+            exclude_prompts = set(train_prompts)
+            print(f"[+] Loaded {len(exclude_prompts)} train prompts to exclude from OR-Bench")
+        else:
+            print(f"[!] No borderline_train_prompts.json found in {adapter_path}")
+
+    orbench_full, orbench_held_out = load_orbench_hard(exclude_prompts=exclude_prompts)
+
     # =========== BASELINE ===========
     baseline = None
     if not args.no_baseline:
@@ -876,6 +988,8 @@ def main():
                 model_id, model_type, adapter_path=None, device=device,
                 batch_size=batch_size, run_mtbench=run_mtbench,
                 mtbench_questions=mtbench_questions, verbose=args.verbose,
+                precision=args.precision,
+                orbench_full=orbench_full, orbench_held_out=orbench_held_out,
             )
             if baseline_cache_path:
                 with open(baseline_cache_path, 'w') as f:
@@ -886,6 +1000,8 @@ def main():
             "orbench_refusal_rate": baseline["orbench"]["refusal_rate"],
             "xstest_refusal_rate": baseline["xstest"]["refusal_rate"],
         }
+        if "orbench_held_out" in baseline:
+            all_results["baseline"]["orbench_held_out_refusal_rate"] = baseline["orbench_held_out"]["refusal_rate"]
         if "mmlu_accuracy" in baseline:
             all_results["baseline"]["mmlu_accuracy"] = baseline["mmlu_accuracy"]
     else:
@@ -901,12 +1017,16 @@ def main():
             model_id, model_type, adapter_path=adapter_path, device=device,
             batch_size=batch_size, run_mtbench=run_mtbench,
             mtbench_questions=mtbench_questions, verbose=args.verbose,
+            precision=args.precision,
+            orbench_full=orbench_full, orbench_held_out=orbench_held_out,
         )
 
         all_results["defended"] = {
             "orbench_refusal_rate": defended["orbench"]["refusal_rate"],
             "xstest_refusal_rate": defended["xstest"]["refusal_rate"],
         }
+        if "orbench_held_out" in defended:
+            all_results["defended"]["orbench_held_out_refusal_rate"] = defended["orbench_held_out"]["refusal_rate"]
         if "mmlu_accuracy" in defended:
             all_results["defended"]["mmlu_accuracy"] = defended["mmlu_accuracy"]
 
@@ -915,10 +1035,16 @@ def main():
 
     # =========== MMLU (via lm-eval-harness) ===========
     if run_mmlu:
+        # Force full GPU cleanup before shelling out to lm-eval subprocess
+        gc.collect()
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+
         if not args.no_baseline and baseline is not None:
             bl_mmlu = evaluate_mmlu_lmeval(
                 model_id, adapter_path=None,
                 batch_size=batch_size, limit=args.mmlu_limit,
+                precision=args.precision,
             )
             if bl_mmlu is not None:
                 baseline["mmlu_accuracy"] = bl_mmlu
@@ -928,6 +1054,7 @@ def main():
             df_mmlu = evaluate_mmlu_lmeval(
                 model_id, adapter_path=adapter_path,
                 batch_size=batch_size, limit=args.mmlu_limit,
+                precision=args.precision,
             )
             if df_mmlu is not None:
                 defended["mmlu_accuracy"] = df_mmlu
@@ -950,11 +1077,7 @@ def main():
         judge_tokenizer.padding_side = "left"
 
         judge_model = AutoModelForCausalLM.from_pretrained(
-            args.judge_model,
-            quantization_config=get_bnb_config(),
-            device_map="auto",
-            trust_remote_code=True,
-            attn_implementation="eager",
+            args.judge_model, **get_load_kwargs(args.precision)
         )
 
         # Judge baseline
@@ -1020,6 +1143,16 @@ def main():
         print(f"{'OR-Bench Hard':<20} {df_or:>11.1f}%")
     elif bl_or is not None:
         print(f"{'OR-Bench Hard':<20} {bl_or:>11.1f}%")
+
+    # OR-Bench Held-Out (test split)
+    bl_or_ho = baseline["orbench_held_out"]["refusal_rate"] * 100 if has_baseline and "orbench_held_out" in baseline else None
+    df_or_ho = defended["orbench_held_out"]["refusal_rate"] * 100 if has_defended and "orbench_held_out" in defended else None
+    if bl_or_ho is not None and df_or_ho is not None:
+        print(f"{'OR-Bench Held-Out':<20} {bl_or_ho:>11.1f}% {df_or_ho:>11.1f}% {df_or_ho - bl_or_ho:>+9.1f}%")
+    elif df_or_ho is not None:
+        print(f"{'OR-Bench Held-Out':<20} {df_or_ho:>11.1f}%")
+    elif bl_or_ho is not None:
+        print(f"{'OR-Bench Held-Out':<20} {bl_or_ho:>11.1f}%")
 
     # XSTest
     bl_xs = baseline["xstest"]["refusal_rate"] * 100 if has_baseline else None

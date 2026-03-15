@@ -1,0 +1,21 @@
+{
+  "defender": "qwen",
+  "model_id": "Qwen/Qwen1.5-7B-Chat",
+  "anchor": null,
+  "baseline": {
+    "orbench_refusal_rate": 0.4609552691432904,
+    "xstest_refusal_rate": 0.212,
+    "mmlu_accuracy": 0.6044722973935337,
+    "mtbench_score": 6.45625,
+    "mtbench_per_category": {
+      "writing": 6.55,
+      "roleplay": 6.05,
+      "reasoning": 6.2,
+      "math": 6.95,
+      "coding": 7.8,
+      "extraction": 6.4,
+      "stem": 5.35,
+      "humanities": 6.35
+    }
+  }
+}

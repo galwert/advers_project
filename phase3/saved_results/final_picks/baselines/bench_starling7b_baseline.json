@@ -1,0 +1,21 @@
+{
+  "defender": "starling",
+  "model_id": "berkeley-nest/Starling-LM-7B-alpha",
+  "anchor": null,
+  "baseline": {
+    "orbench_refusal_rate": 0.04094010614101592,
+    "xstest_refusal_rate": 0.068,
+    "mmlu_accuracy": 0.6405070502777382,
+    "mtbench_score": 6.2125,
+    "mtbench_per_category": {
+      "writing": 6.05,
+      "roleplay": 5.9,
+      "reasoning": 6.5,
+      "math": 6.9,
+      "coding": 7.0,
+      "extraction": 6.15,
+      "stem": 5.35,
+      "humanities": 5.85
+    }
+  }
+}

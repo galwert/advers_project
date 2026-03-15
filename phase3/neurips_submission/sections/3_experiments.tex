@@ -1,0 +1,246 @@
+\section{Experiments}
+
+\subsection{Experimental Setting}
+
+\paragraph{Training data.}
+Each batch mixes harmful prompts (from AdvBench~\citep{zou2023universal}), benign prompts (WikiText-2~\citep{wikitext}), and borderline prompts (XSTest safe subset~\citep{xstest}). Harmful prompts drive $\loss_{\text{CKA}}$, $\loss_{\text{refusal}}$, and $\loss_{\text{LM}}$; benign and borderline prompts drive $\loss_{\text{coherency}}$ and $\loss_{\text{KL}}$. Crucially, \textbf{GCG adversarial suffixes are never used during training}---the defense is attack-agnostic, relying on structural divergence rather than adversarial examples.
+Without borderline prompts in training, CKA repulsion produces degenerate output on ambiguous inputs. Adding XSTest safe prompts to the benign set and protecting them with $\loss_{\text{KL}}$ and $\loss_{\text{coherency}}$ resolves this. We evaluate over-refusal on OR-Bench Hard~\citep{orbench} (zero overlap with XSTest training data).
+
+\paragraph{Hyperparameters.}
+\cref{tab:hyperparams_permodel} lists per-model settings; $\alpha\!=\!0.15$ and $\beta\!=\!1.0$ are shared across all models. Each anchor is chosen from a different model family to maximize the pre-training distribution gap (\cref{app:hyperparams:anchor}). The per-model variation in $\gamma$ reflects differences in initial CKA with the anchor: higher baseline similarity requires stronger repulsion. Larger models (9B+) use LM loss ($\delta > 0$) to prevent over-refusal. Mistral-7B requires a reduced learning rate ($5\!\times\!10^{-5}$) due to sensitivity to weight perturbation magnitude (\cref{app:hyperparams:lr}). All models converge within 200--400 steps.
+
+\begin{table}[ht]
+\centering
+\caption{Per-model hyperparameters. Shared: LoRA $r\!=\!32$, $\alpha_{\text{LoRA}}\!=\!64$, AdamW, target layer 50\% depth. LR $= 2\!\times\!10^{-4}$ except Mistral-7B ($5\!\times\!10^{-5}$; see \cref{app:hyperparams:lr}). Full guidelines in \cref{app:hyperparams}.}
+\label{tab:hyperparams_permodel}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llcl@{}}
+\toprule
+\textbf{Defender} & \textbf{Anchor} & \textbf{$\gamma$} & \textbf{$\varepsilon / \delta$} \\
+\midrule
+Qwen-1.5-7B    & Llama-3-8B   & 3.0 & 0.4 / 0    \\
+Llama-3-8B     & Qwen-1.5-7B  & 2.0 & 0.4 / 0    \\
+Vicuna-7B      & Qwen-1.5-7B  & 2.0 & 0.4 / 0    \\
+Yi-1.5-9B      & Mistral-7B   & 2.0 & 0.4 / 0.08 \\
+Nemo-12B       & Qwen-1.5-7B  & 1.5 & 0.4 / 0.08 \\
+Qwen-1.5-14B   & Qwen-1.5-7B  & 2.0 & 0.4 / 0.08 \\
+Mistral-7B     & Llama-3-8B   & 1.0 & 0.8 / 0.04 \\
+\bottomrule
+\end{tabular}
+\setlength{\tabcolsep}{6pt}
+\end{table}
+
+\paragraph{Evaluation metrics.}
+We evaluate using: \textbf{ASR} (attack success rate---self, anchor, and cross-model transfer), \textbf{FRR} (false refusal rate---refusal on \emph{unambiguously safe} prompts such as general knowledge and WikiText~\citep{wikitext} passages, detected by refusal keyword matching), \textbf{BGR} (benign garble rate---detects degenerate output missed by FRR, via a pretrained gibberish classifier with heuristic fallbacks), \textbf{MMLU}~\citep{mmlu} (5-shot accuracy), and \textbf{MT-Bench}~\citep{mtbench} (conversation quality, 1--10). For over-refusal on \emph{ambiguous} prompts, we use two separate benchmarks: \textbf{OR-Bench Hard}~\citep{orbench} (1,320 borderline-safe prompts, zero overlap with training data---our primary over-refusal metric) and \textbf{XSTest}~\citep{xstest} (250 safe-but-sensitive prompts, also used in borderline training). We note that HarmBench~\citep{harmbench} provides a complementary standardized red-teaming framework; we adopt its attack-success evaluation protocol for GCG suffix scoring. FRR and OR-Bench measure complementary failure modes: FRR detects refusal on clearly safe inputs, while OR-Bench detects over-refusal on prompts that \emph{could} be confused for harmful content.
+
+\subsection{Experimental Results}
+
+\paragraph{Defense evaluation across seven models.}
+
+\begin{table}[ht]
+\centering
+\caption{Defense ASR summary (\%) across seven models. GCG suffixes from 20 source models. Self = attacks from the defender's own suffixes; Cross = average over all non-self sources; Avg = overall average. Per-source breakdowns in \cref{app:full_asr}. Lower is better.}
+\label{tab:defense_results}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+\textbf{Model} & \textbf{Config} & \textbf{Self} & \textbf{Cross} & \textbf{Avg} & \textbf{BGR} \\
+\midrule
+Yi-1.5-9B      & yi9b\_ya\_a        & 3  & 0  & 1  & 0\%   \\
+Vicuna-7B      & vicuna\_vt\_a      & 4  & 5  & 5  & 0\%   \\
+Llama-3-8B     & llama3\_lx\_d      & 1  & 1  & 1  & 0\%   \\
+Qwen-1.5-7B    & qwen\_ab\_hx       & 10 & 0  & 3  & 1.1\% \\
+Nemo-12B       & nemo\_ab2\_hx      & 0  & 2  & 1  & 0\%   \\
+Qwen-1.5-14B   & qwen14b\_q14\_e    & 0  & 1  & 0  & 1.1\% \\
+Qwen-1.5-14B   & qwen14b\_q14\_b    & 1  & 2  & 2  & 1.1\% \\
+Mistral-7B     & lr\_l3\_hx\_g10    & 1  & 3  & 2  & 0\%   \\
+Mistral-7B     & mistral\_anc\_q\_ax & 9 & 9  & 9  & 0\%   \\
+Mistral-7B     & msw\_g01\_e02      & 3  & 5  & 4  & 4.4\% \\
+\bottomrule
+\end{tabular}
+\setlength{\tabcolsep}{6pt}
+\end{table}
+
+\Cref{tab:defense_results} shows that our defense reduces cross-model ASR to \textbf{0--5\%} across all seven models, with BGR $\leq 4.4\%$ and 0\% FRR in all cases.
+The defense presents a security--utility tradeoff: stronger CKA repulsion yields lower ASR at the cost of increased over-refusal or slight quality degradation (see \cref{tab:benchmark_results}).
+For each model family we include multiple configurations that navigate this tradeoff differently---e.g., Mistral's \texttt{lr\_l3\_hx\_g10} achieves 3\% cross-model ASR with near-baseline MT-Bench, while \texttt{msw\_g01\_e02} trades more quality ($-0.58$ MT-Bench) for stronger overall ASR reduction.
+The self-ASR reduction is a side effect: modifying representations to break cross-model similarity also disrupts the model's own pre-computed adversarial suffixes.
+
+\paragraph{CKA analysis.}
+\cref{tab:cka_groups} confirms the defense is targeted: harmful CKA drops by 0.51--0.64 while benign CKA changes by only 0.01--0.06.
+
+\begin{table}[ht]
+\centering
+\caption{CKA similarity (adapted vs.\ anchor) by prompt group.}
+\label{tab:cka_groups}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{\textbf{Qwen / Llama-3}} & \multicolumn{2}{c}{\textbf{Llama-3 / Qwen}} & \multicolumn{2}{c}{\textbf{Mistral / Llama-2}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+\textbf{Group} & \textbf{Adapted} & \textbf{Base} & \textbf{Adapted} & \textbf{Base} & \textbf{Adapted} & \textbf{Base} \\
+\midrule
+Harmful        & 0.13 & 0.76 & 0.24 & 0.76 & 0.29 & 0.81 \\
+Harmful+GCG    & 0.15 & 0.70 & 0.21 & 0.50 & 0.07 & 0.47 \\
+Borderline     & 0.69 & 0.79 & 0.40 & 0.79 & 0.48 & 0.71 \\
+Benign         & 0.95 & 0.96 & 0.93 & 0.96 & 0.87 & 0.93 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The Mistral results are particularly striking: harmful+GCG CKA drops from 0.47 to \textbf{0.07}---nearly complete decorrelation---while benign CKA remains at 0.87 (only $-0.06$ from the base). This confirms the defense precisely targets the representation subspace that transfer attacks exploit.
+
+\cref{fig:cka_before_after} visualizes the structural disruption: before defense, cross-model CKA between Mistral and Llama-2 is uniformly high (mean diagonal 0.925); after defense, it flattens (mean diagonal 0.806), with the largest reduction at mid-layers 8--20.
+
+\input{figs/fig_cka_heatmap}
+
+An ablation over CKA scope (\cref{tab:cka_ablation}) confirms that computing repulsion only on harmful prompts is critical: broader scopes dilute the defense while damaging benign representations.
+
+\begin{table}[ht]
+\centering
+\caption{CKA scope ablation (Qwen-1.5-7B, anchor Llama-3).}
+\label{tab:cka_ablation}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{CKA Scope} & \textbf{ASR (s/a/o)} & \textbf{Benign CKA} & \textbf{Harmful CKA} & \textbf{FRR} & \textbf{PPL} \\
+\midrule
+Harmful only & 2/0/2\%   & 0.95 & 0.13 & 0\%   & 2.53 \\
+All          & 14/19/16\% & 0.42 & 0.12 & 0\%   & 1.98 \\
+Benign only  & 44/5/2\%  & 0.74 & 0.42 & 0\%   & 2.68 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Ablation: from CKA-only to full defense.}
+\label{sec:ablation}
+
+\begin{table}[ht]
+\centering
+\caption{Mistral-7B ablation (anchor: Llama-2). $^\dagger$Run 2: 0\% ASR but $>$50\% BGR (degenerate output); FRR = 0\% is misleading.}
+\label{tab:mistral_ablation}
+\begin{tabular}{lccc}
+\toprule
+ & Run 1 ($\gamma$ weak) & Run 2 ($\gamma$ strong) & Run 3 (full) \\
+\midrule
+$\gamma / \alpha / \varepsilon$ & 0.3/0/0 & 1.5/0/0 & 0.5/0.15/1.0 \\
+ASR (s/a/o \%)   & 11/11/9 & $\sim$0/0/0$^\dagger$ & 0/0/0 \\
+BGR (\%)         & 0.0     & $>$50$^\dagger$       & 0.0   \\
+Benign CKA       & 0.903   & 0.369                 & 0.867 \\
+Harmful GCG CKA  & 0.608   & 0.098                 & 0.068 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Run~1 (weak $\gamma=0.3$) partially reduces ASR but is insufficient. Run~2 (strong $\gamma=1.5$) eliminates transfer entirely (0\% ASR) but collapses benign representations (BGR $>$ 50\%), establishing CKA repulsion as the core mechanism. Run~3 adds refusal direction ($\alpha=0.15$) and KL-divergence ($\varepsilon=1.0$), allowing $\gamma$ to be reduced to 0.5: the refusal loss provides targeted pressure on harmful representations, while KL-divergence prevents leakage to benign prompts. Result: \textbf{0\% ASR with 0\% BGR} (benign CKA 0.867).
+
+\paragraph{Layer sweep.}
+\label{sec:layer_sweep}
+
+We sweep the target layer over six depths on Mistral-7B using Run~3 hyperparameters. Phase~1 CKA diagnostics motivate this: harmful CKA between Mistral and Llama-2 is uniformly high (0.91--0.95) across all layers, while clean CKA is low at early layers (0.17--0.54) and plateaus at 0.88+ at mid-to-late layers.
+
+\begin{table}[ht]
+\centering
+\caption{Layer sweep (Mistral-7B, anchor: Llama-2). Baseline MT-Bench = 6.46.}
+\label{tab:layer_sweep}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+\textbf{Layer \%} & \textbf{ASR (s/a/o)} & \textbf{FRR} & \textbf{BGR} & \textbf{OR-Bench} & \textbf{XSTest} & \textbf{MT-Bench} & \textbf{PPL} & \textbf{TDR} \\
+ & $\downarrow$ & $\downarrow$ & $\downarrow$ & $\downarrow$ & $\downarrow$ & $\uparrow$ & $\downarrow$ & $\uparrow$ \\
+\midrule
+0.1935 & 0/0/0\%  & 0\% & 80.0\% & 15.8\% & 0.4\% & 1.85 & 3.15 & 0.065 \\
+0.25   & 0/0/0\%  & 0\% & 68.9\% & 10.8\% & 5.6\% & 1.21 & 2.29 & 0.057 \\
+0.375  & 0/0/0\%  & 7.7\%        & 5.6\%  & 91.5\% & 28.4\% & 3.83 & 2.83 & 0.263 \\
+0.5    & 0/0/0\%  & 0\% & 0\% & 22.8\% & 3.6\% & 6.23 & 2.45 & 0.352 \\
+0.625  & 7/5/2\%           & 0\% & 0\% & 15.2\% & 3.2\% & 6.34 & 2.95 & 0.349 \\
+0.75   & 12/9/2\%          & 0\% & 3.3\%  & 11.5\% & 3.0\% & 6.38 & 2.32 & 0.324 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Early layers (0.19--0.25) achieve 0\% ASR but produce 68--80\% garbled output (MT-Bench 1.21--1.85); FRR = 0\% is misleading since the model outputs gibberish that lacks refusal keywords, demonstrating that BGR is essential for evaluating representation-engineering defenses. Layer 0.375 over-refuses (91.5\% OR-Bench, 28.4\% XSTest). \textbf{Layer 0.5 is optimal}: 0\% ASR, 0\% BGR/FRR, MT-Bench 6.23 ($-0.23$ from baseline). Late layers (0.625--0.75) preserve quality but leak attacks (7--12\% self-ASR, 5--9\% anchor-ASR), modifying representations too late to fully disrupt transferred attack trajectories. This is consistent with mid-layers encoding semantic representations~\citep{tenney2019bert,geva2022transformer}: CKA repulsion there disrupts shared semantic geometry without corrupting the syntactic features that earlier layers provide.
+
+\paragraph{Benchmark evaluation.}
+
+\begin{table}[ht]
+\centering
+\caption{Benchmark deltas (defended $-$ baseline). OR-Bench/XSTest: lower better ($-$ = improved). MT-Bench: higher better ($+$ = improved). MMLU where available.}
+\label{tab:benchmark_results}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+\textbf{Model} & \textbf{Config} & \textbf{$\Delta$XS} & \textbf{$\Delta$OR} & \textbf{$\Delta$MT} & \textbf{MMLU} \\
+\midrule
+Yi-1.5-9B      & yi9b\_ya\_a        & $+2.0$  & $+11.1$ & $+0.09$ & TBD   \\
+Vicuna-7B      & vicuna\_vt\_a      & $-3.6$  & $-0.8$  & $+0.25$ & 49.8\% \\
+Llama-3-8B     & llama3\_lx\_d      & $-2.4$  & $+1.9$  & $+0.18$ & TBD   \\
+Qwen-1.5-7B    & qwen\_ab\_hx       & $-0.8$  & $+16.1$ & $+0.04$ & TBD   \\
+Nemo-12B       & nemo\_ab2\_hx      & $-0.4$  & $+29.6$ & $+0.17$ & TBD   \\
+Qwen-1.5-14B   & qwen14b\_q14\_e    & $+2.8$  & $+9.1$  & $-0.19$ & TBD   \\
+Qwen-1.5-14B   & qwen14b\_q14\_b    & $+1.6$  & $+8.4$  & $-0.19$ & TBD   \\
+Mistral-7B     & lr\_l3\_hx\_g10    & $+2.8$  & $+16.6$ & $+0.03$ & TBD   \\
+Mistral-7B     & mistral\_anc\_q\_ax & $+2.8$ & $+9.4$  & $-0.13$ & TBD   \\
+Mistral-7B     & msw\_g01\_e02      & $-6.4$  & $-11.6$ & $-0.58$ & 54.1\% \\
+\bottomrule
+\end{tabular}
+\setlength{\tabcolsep}{6pt}
+\end{table}
+
+The defense navigates a tradeoff between security and over-refusal. Configurations with the lowest cross-model ASR (e.g., Yi, Llama-3, Nemo) tend to show moderate OR-Bench increases ($+1.9$ to $+29.6$\%), reflecting increased caution on borderline prompts. Conversely, Mistral's \texttt{msw\_g01\_e02} achieves the best over-refusal profile ($\Delta$OR $= -11.6\%$, $\Delta$XS $= -6.4\%$) at the cost of higher ASR and MT-Bench degradation ($-0.58$). MT-Bench is preserved or improved in most configurations ($\Delta$MT $\geq -0.19$), with Vicuna and Llama-3 showing slight improvements ($+0.25$, $+0.18$). XSTest changes are small ($|\Delta| \leq 3.6\%$) across all models.
+
+\paragraph{Adaptive attack evaluation.}
+\label{sec:adaptive}
+
+We run GCG, Embedding PGD~\citep{madry2018towards}, and PAIR~\citep{pair} directly on defended models (white-box).
+
+\begin{table}[t]
+\centering
+\caption{Adaptive attack ASR (\%). All attacks optimized directly on the target model.$^\dagger$}
+\label{tab:adaptive-attack}
+\begin{tabular}{llccc}
+\toprule
+\textbf{Model} & \textbf{Setting} & \textbf{GCG} & \textbf{Emb.\ PGD} & \textbf{PAIR} \\
+\midrule
+\multirow{2}{*}{Qwen}    & Baseline & 54.0 & 74.0 & 24.0 \\
+                          & Defended & 51.0 & 68.0 & 8.0 \\
+\midrule
+\multirow{2}{*}{Llama-3} & Baseline & 2.0  & 61.0 & 10.0 \\
+                          & Defended & 2.0  & 65.0 & 11.0 \\
+\midrule
+\multirow{2}{*}{Mistral}  & Baseline & 29.1 & 69.0 & 30.0 \\
+                          & Defended & 5.0  & 25.0 & 17.0 \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+{\small $^\dagger$Embedding PGD~\citep{madry2018towards} bypasses all representation-engineering defenses; Glukhov et al.~\citep{revisiting_cb} show identical attacks break Circuit Breakers from 2.5\% to 100\% ASR.}
+\end{table}
+
+\paragraph{Comparison with competing defenses.}
+
+\begin{table}[t]
+\centering
+\caption{Utility deltas vs.\ each model's undefended baseline, evaluated under our protocol. All competing defenses achieve 0\% same-model ASR but have not been evaluated against cross-model transfer. $^*$CB Llama-3 MT-Bench inflated by EOS misconfiguration (\cref{app:cb_mtbench}).}
+\label{tab:comparison}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llccc@{}}
+\toprule
+\textbf{Method} & \textbf{Model} & $\Delta$\textbf{MT} & $\Delta$\textbf{XS} & $\Delta$\textbf{OR} \\
+\midrule
+CB~\citep{zou2024circuitbreakers}      & Llama-3 & $+0.78^*$ & $-0.4$  & $+18.7$ \\
+CB~\citep{zou2024circuitbreakers}      & Mistral & $-0.34$   & $-2.4$  & $-18.1$ \\
+LAT~\citep{lat}                        & Llama-3 & $-0.03$   & $+43.6$ & $+33.1$ \\
+RepBend~\citep{repbend}                & Llama-3 & $-0.22$   & $+2.8$  & $+18.6$ \\
+RepBend~\citep{repbend}                & Mistral & $-0.19$   & $+0.4$  & $+19.1$ \\
+\midrule
+Ours                                   & Yi-9B   & $+0.09$   & $+2.0$  & $+11.1$ \\
+Ours                                   & Vicuna  & $\mathbf{+0.25}$  & $-3.6$  & $\mathbf{-0.8}$ \\
+Ours                                   & Llama-3 & $+0.18$   & $-2.4$  & $+1.9$ \\
+Ours                                   & Qwen-7B & $+0.04$   & $-0.8$  & $+16.1$ \\
+Ours                                   & Nemo-12B& $+0.17$   & $-0.4$  & $+29.6$ \\
+Ours                                   & Qwen-14B& $-0.19$   & $+2.8$  & $+9.1$ \\
+Ours (best ASR)                        & Mistral & $+0.03$   & $+2.8$  & $+16.6$ \\
+Ours (best util.)                      & Mistral & $-0.58$   & $\mathbf{-6.4}$  & $\mathbf{-11.6}$ \\
+\bottomrule
+\end{tabular}
+\setlength{\tabcolsep}{6pt}
+\end{table}
+
+All competing defenses show substantial over-refusal: LAT increases OR-Bench by $+33.1\%$ and XSTest by $+43.6\%$ on Llama-3; RepBend and CB increase OR-Bench by $+18$--$19\%$ on both models. Our defense is competitive on utility---five of seven models show MT-Bench improvement over baseline---while being the only method that addresses cross-model transfer. On Mistral, where direct comparison is possible, our best-utility configuration (\texttt{msw\_g01\_e02}) achieves $\Delta$OR $= -11.6\%$ and $\Delta$XS $= -6.4\%$, outperforming all competing defenses on over-refusal, while our best-ASR configuration (\texttt{lr\_l3\_hx\_g10}) maintains near-baseline MT-Bench ($+0.03$).

@@ -1,0 +1,20 @@
+{
+  "defender": "vicuna",
+  "model_id": "lmsys/vicuna-7b-v1.5",
+  "anchor": null,
+  "baseline": {
+    "orbench_refusal_rate": 0.27975739196360877,
+    "xstest_refusal_rate": 0.096,
+    "mtbench_score": 5.675,
+    "mtbench_per_category": {
+      "writing": 5.7,
+      "roleplay": 5.6,
+      "reasoning": 5.6,
+      "math": 5.8,
+      "coding": 6.0,
+      "extraction": 6.05,
+      "stem": 5.35,
+      "humanities": 5.3
+    }
+  }
+}

@@ -1,0 +1,27 @@
+\section{Introduction}
+
+Large language models (LLMs) are vulnerable to adversarial jailbreak attacks that craft inputs to bypass safety alignment and elicit harmful responses~\citep{wei2024jailbroken}.
+A growing body of defenses exists---including representation-engineering methods (Circuit Breakers~\citep{zou2024circuitbreakers}, RepBend~\citep{repbend}) and input-level approaches (SmoothLLM~\citep{smoothllm})---but all share a common assumption: the attacker optimizes against the \emph{same} model being defended (see \cref{sec:related} for a full survey).
+In practice, however, adversarial suffixes produced by gradient-based methods like GCG~\citep{zou2023universal} \emph{transfer} across models: an attacker with white-box access to any open-weight LLM can craft suffixes that jailbreak a different target model without ever querying it.
+Recent work has established that this transfer depends on representation similarity between models~\citep{angell2025transfer, li2025causes}, yet no existing defense addresses it.
+This paper asks a simple question: \emph{if representation similarity enables adversarial transfer, can we defend against transfer by breaking that similarity?}
+
+We answer affirmatively.
+Computing pairwise CKA (Centered Kernel Alignment) across 20 diverse LLMs and measuring GCG suffix transfer ASR across all cross-model pairs, we find that---after conditioning on architectural family to control for alignment-quality confounds---high-similarity pairs transfer $3.3\times$ more effectively than low-similarity pairs ($\rho = +0.36$, $p = 0.01$).
+Per-layer analysis between Mistral-7B and Llama-2-7B reveals that harmful-prompt CKA is uniformly high (0.91--0.95) across all layers, explaining the 81\% baseline transfer ASR, while benign-prompt CKA is low at early layers and plateaus at mid-depth, suggesting where a selective defense can operate.
+Building on this diagnostic, we train a lightweight LoRA adapter on the defender model that minimizes CKA similarity with a frozen anchor model on harmful prompts, while preserving benign behavior through coherency, KL-divergence, and refusal-direction losses.
+CKA operates on Gram matrices rather than individual representations, making it agnostic to hidden dimension and enabling defense against anchors with entirely different architectures (e.g., 2560-dim Phi-2 vs.\ 4096-dim Llama~\citep{llama2}).
+
+We evaluate across seven models spanning five architecture families at the 7B--14B scale, each defended against GCG suffixes transferred from 20 source models.
+Our defense reduces cross-model ASR to 0--5\%---the first method to address this threat vector---while preserving competitive utility.
+Existing defenses tested under the same cross-model protocol show 1.2--1.3\% residual ASR even on Mistral alone, and have never been evaluated against cross-model transfer.
+Controlled ablations show that CKA repulsion alone suffices for security but damages benign output; adding refusal-direction steering restores quality, and a layer-depth sweep identifies the middle layer as optimal.
+
+\paragraph{Our contributions are as follows.}
+\begin{itemize}[noitemsep]
+    \item The first defense against cross-model adversarial transfer, reducing cross-model ASR to 0--5\% across seven models spanning five architecture families where existing defenses show 1.2--6.2\%.
+    \item Observational and causal evidence linking representation similarity (CKA) to adversarial transfer, closing the diagnostic-to-defense loop.
+    \item A multi-objective LoRA training framework combining CKA repulsion, refusal-direction steering, and KL-divergence preservation, with per-model hyperparameter guidance.
+    \item The Benign Garble Rate (BGR) metric for detecting degenerate output in representation-engineering defenses.
+    \item A layer-depth analysis connecting per-layer CKA diagnostics to defense effectiveness, identifying the optimal operating point.
+\end{itemize}

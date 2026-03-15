@@ -1,0 +1,98 @@
+{
+  "adaptive_nemo_baseline.json": {
+    "phase": "gcg",
+    "total": 4,
+    "success": null,
+    "asr": null,
+    "status": "in_progress (4/50 GCG done, no judge yet)",
+    "n_prompts": 50
+  },
+  "adaptive_qwen_baseline.json": {
+    "phase": "gcg",
+    "total": 8,
+    "success": null,
+    "asr": null,
+    "status": "in_progress (8/50 GCG done, no judge yet)",
+    "n_prompts": 50
+  },
+  "adaptive_qwen_defended.json": {
+    "phase": "done",
+    "total": 50,
+    "success": 26,
+    "asr": 52.0,
+    "status": "complete",
+    "n_prompts": 50
+  },
+  "adaptive_vicuna_baseline.json": {
+    "phase": "done",
+    "total": 50,
+    "success": 43,
+    "asr": 86.0,
+    "status": "complete",
+    "n_prompts": 50
+  },
+  "adaptive_vicuna_defended.json": {
+    "phase": "gcg",
+    "total": 19,
+    "success": null,
+    "asr": null,
+    "status": "in_progress (19/50 GCG done, no judge yet)",
+    "n_prompts": 50
+  },
+  "adaptive_yi9b_baseline.json": {
+    "phase": "gcg",
+    "total": 27,
+    "success": null,
+    "asr": null,
+    "status": "in_progress (27/50 GCG done, no judge yet)",
+    "n_prompts": 50
+  },
+  "adaptive_yi9b_defended.json": {
+    "phase": "done",
+    "total": 50,
+    "success": 22,
+    "asr": 44.0,
+    "status": "complete",
+    "n_prompts": 50
+  },
+  "advanced_qwen_baseline.json": {
+    "phase": "unknown",
+    "total": 100,
+    "success": 61,
+    "asr": 61.0,
+    "status": "complete",
+    "n_prompts": 100,
+    "pgd_asr": 74.0,
+    "pair_asr": 48.0
+  },
+  "advanced_qwen_defended.json": {
+    "phase": "unknown",
+    "total": 100,
+    "success": 52,
+    "asr": 52.0,
+    "status": "complete",
+    "n_prompts": 100,
+    "pgd_asr": 76.0,
+    "pair_asr": 28.0
+  },
+  "advanced_yi9b_baseline.json": {
+    "phase": "unknown",
+    "total": 100,
+    "success": 76,
+    "asr": 76.0,
+    "status": "complete",
+    "n_prompts": 100,
+    "pgd_asr": 100.0,
+    "pair_asr": 52.0
+  },
+  "advanced_yi9b_defended.json": {
+    "phase": "unknown",
+    "total": 100,
+    "success": 73,
+    "asr": 73.0,
+    "status": "complete",
+    "n_prompts": 100,
+    "pgd_asr": 88.0,
+    "pair_asr": 58.0
+  }
+}

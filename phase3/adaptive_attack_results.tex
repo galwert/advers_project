@@ -1,0 +1,377 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+
+\newcommand\rom[1]{\textcolor{red}{(\textbf{Rom}: #1)}} % Will
+\newcommand\gal[1]{\textcolor{cyan}{(\textbf{Gal}: #1)}} % Will
+
+
+\newcommand{\loss}{\mathcal{L}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\norm}[1]{\left\| #1 \right\|}
+
+\title{Cross-Model Adversarial Defense via Representation Divergence}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+% ============================================================
+\section{Threat Model}
+% ============================================================
+
+Adversarial attacks on LLMs (e.g., GCG~\cite{zou2023universal}) optimize input suffixes to jailbreak a \emph{source} model \rom{Adversarial attacks are not only suffixes}. \gal{Fixed. Now reads: ``craft adversarial inputs---such as optimized suffixes, paraphrased prompts, or multi-turn dialogues.''} \rom{We hypothesize} \gal{Fixed. Now explicitly says ``We hypothesize.'' Added a ``Related evidence'' paragraph with 5 concurrent papers supporting the hypothesis (Angell+2025, Li+2025, Ball+2025, Klause\&Bunzel 2025, Gupta+2025).} These attacks \textbf{transfer} across model families because the internal representations of aligned LLMs share similar geometric structure. Existing defenses (Circuit Breakers, ReFAT, RepBend, LAT) defend against attacks optimized on the \emph{same} model but do not address cross-model transfer.
+
+We propose a defense that explicitly \textbf{breaks the representation similarity} between a \emph{defender} model $\mathcal{M}_d$ and a reference \emph{anchor} model $\mathcal{M}_a$, rendering transferred attacks ineffective while preserving benign behavior.
+
+% ============================================================
+\section{Method}
+% ============================================================
+
+\subsection{Overview}
+
+We train a LoRA adapter on the defender model $\mathcal{M}_d$ using a multi-objective loss that balances two goals:
+\begin{enumerate}[noitemsep]
+    \item \textbf{Representation divergence}: Break the geometric similarity between $\mathcal{M}_d$ and $\mathcal{M}_a$ so that adversarial suffixes optimized on $\mathcal{M}_a$ no longer navigate $\mathcal{M}_d$'s representation space correctly. \rom{do we claim model normal robustness to attacks improve?} \gal{No. Now explicitly states: ``We do not claim improved robustness to direct (same-model) attacks---the self-ASR reduction is a side effect of modifying the model. Our primary claim is about cross-model transfer robustness.'' Added Section~4.6 (Adaptive Attack Evaluation) with GCG, Embedding PGD, and PAIR run directly on the defended model, confirming intrinsic robustness is preserved but not improved.}
+    \item \textbf{Behavior preservation}: Maintain $\mathcal{M}_d$'s output quality on benign inputs.
+\end{enumerate}
+
+\subsection{Architecture}
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Quantization}: Both models loaded in 4-bit NF4 quantization. \rom{why NF4? It loses a lot of performance.} \gal{Agreed. Switched to full-precision fp32. The updated paper reads: ``All experiments use full-precision fp32 weights. Early development used NF4 quantization for convenience, but quantization noise in hidden states degraded CKA loss quality.'' Required re-tuning hyperparameters ($\varepsilon$: $3.0 \to 0.4$, $\gamma$: $1.5 \to 3.0$, LR: $5 \times 10^{-5} \to 2 \times 10^{-4}$).}
+    \item \textbf{LoRA adapter}: Rank $r=32$, scaling $\alpha_{\text{LoRA}}=64$, dropout $0.05$, applied to all attention and MLP projections (\texttt{q\_proj}, \texttt{k\_proj}, \texttt{v\_proj}, \texttt{o\_proj}, \texttt{gate\_proj}, \texttt{up\_proj}, \texttt{down\_proj}).
+    \item \textbf{Target layer}: Hidden states extracted at layer $\ell = \lfloor 0.5 \cdot L \rfloor$, where $L$ is the total number of layers (i.e., the middle layer).
+    \item \textbf{Optimizer}: AdamW with learning rate $5 \times 10^{-5}$, weight decay $0.01$, gradient clipping at $1.0$, warmup over 50 steps, gradient accumulation over 2 steps.
+\end{itemize}
+
+\subsection{Cross-Model Alignment via CKA}
+
+Centered Kernel Alignment (CKA)~\cite{kornblith2019similarity} enables dimension-agnostic comparison of representations across models with potentially different hidden sizes (e.g., $d_{\text{defender}} = 4096$ vs.\ $d_{\text{anchor}} = 2560$).
+
+Given a batch of $N$ prompts, let $\mathbf{X}_d \in \R^{N \times d_d}$ and $\mathbf{X}_a \in \R^{N \times d_a}$ denote the hidden states at layer $\ell$ from the defender and anchor, respectively. We compute linear Gram matrices:
+\begin{equation}
+    \mathbf{K}_d = \mathbf{X}_d \mathbf{X}_d^\top \in \R^{N \times N}, \quad
+    \mathbf{K}_a = \mathbf{X}_a \mathbf{X}_a^\top \in \R^{N \times N}
+\end{equation}
+
+Center the kernels using the centering matrix $\mathbf{H} = \mathbf{I}_N - \frac{1}{N}\mathbf{1}\mathbf{1}^\top$:
+\begin{equation}
+    \tilde{\mathbf{K}}_d = \mathbf{H} \mathbf{K}_d \mathbf{H}, \quad
+    \tilde{\mathbf{K}}_a = \mathbf{H} \mathbf{K}_a \mathbf{H}
+\end{equation}
+
+The CKA similarity is:
+\begin{equation}
+    \text{CKA}(\mathbf{X}_d, \mathbf{X}_a) = \frac{\text{HSIC}(\tilde{\mathbf{K}}_d, \tilde{\mathbf{K}}_a)}{\sqrt{\text{HSIC}(\tilde{\mathbf{K}}_d, \tilde{\mathbf{K}}_d) \cdot \text{HSIC}(\tilde{\mathbf{K}}_a, \tilde{\mathbf{K}}_a)}}
+\end{equation}
+where $\text{HSIC}(\mathbf{A}, \mathbf{B}) = \text{tr}(\mathbf{A}^\top \mathbf{B})$.
+
+CKA compares \emph{relational structure}---how inputs relate to each other within each model---rather than individual point-to-point correspondences. This makes it invariant to the hidden dimension and captures the geometric organization that transfer attacks exploit.
+
+\paragraph{Why CKA captures transferability.}
+Adversarial transfer attacks succeed because two models organize their representations similarly: prompts that are ``close'' in one model's representation space are also close in the other's. CKA directly measures this shared relational geometry via Gram matrices. A high CKA similarity ($\text{CKA} \approx 1$) means the two models encode the same neighborhood structure---if an adversarial suffix navigates the anchor toward compliance, the same suffix follows a similar trajectory in the defender. By \textbf{minimizing CKA}, we break this correspondence: the defender's internal ``map'' is reorganized so that the directions and neighborhoods the anchor relies on no longer align. Concretely, after training, prompts that were nearby in both models' representations are no longer nearby in the defender, invalidating the adversarial suffix's optimization path. Crucially, because CKA operates on the $N \times N$ Gram matrix rather than on individual $d$-dimensional vectors, this works even when the anchor and defender have entirely different hidden dimensions. \rom{it will be interesting to see CKA values on example groups of prompts on two models - and how they change after the training.} \gal{Done. Added Table~3 (CKA per-group) showing CKA before/after training on 4 prompt groups: harmful, harmful+GCG suffix, benign, and borderline. Harmful CKA drops from $\sim$0.79 to $\sim$0.15 while benign CKA stays within 0.01 of the base model. Both Qwen and Llama-3 results shown.}
+
+% ============================================================
+\subsection{Loss Function}
+% ============================================================
+
+The total loss combines three active objectives---CKA repulsion for defense, coherency and KL-divergence for behavior preservation:
+
+\begin{equation}
+    \loss = \gamma \cdot \loss_{\text{CKA}} + \beta \cdot \loss_{\text{coherency}} + \varepsilon \cdot \loss_{\text{KL}}
+\end{equation}
+
+\subsubsection{Anchor Repulsion Loss ($\loss_{\text{CKA}}$, weight $\gamma = 1.5$)}
+
+Minimize the CKA similarity between the adapted defender and the frozen anchor, computed only on harmful prompts:
+\begin{equation}
+    \loss_{\text{CKA}} = \text{CKA}(\mathbf{X}_d^{\text{adapted}}, \mathbf{X}_a)
+\end{equation}
+where $\mathbf{X}_d^{\text{adapted}}$ are hidden states from the LoRA-adapted defender and $\mathbf{X}_a$ are from the frozen anchor (computed with \texttt{torch.no\_grad}). Minimizing this loss \textbf{reorganizes the internal neighborhood structure} of the defender so that the anchor's geometric ``map'' becomes invalid. Restricting CKA to harmful prompts focuses the disruption on the region of representation space that attacks exploit, while leaving benign-region geometry intact \rom{is this important? jailbreaks try to seem as harmless prompts - including also harmless prompts (maybe exclusively) might be better in my opinion.} \gal{Good question. Added CKA scope ablation (Table~4) comparing three settings: harmful\_only, all (harmful+benign), and benign\_only. Results: harmful\_only achieves the best defense (lowest ASR) with minimal benign damage. Broader scopes dilute the gradient signal across benign prompts, weakening the defense while unnecessarily damaging benign representations. The ``all'' scope reduces ASR less effectively and degrades benign CKA.}.
+
+\subsubsection{Coherency Loss ($\loss_{\text{coherency}}$, weight $\beta = 1.0$)}
+
+MSE between the adapted and base (adapter-disabled) defender hidden states at layer $\ell$:
+\begin{equation}
+    \loss_{\text{coherency}} = \frac{1}{N} \sum_{i=1}^{N} w_i \cdot \norm{\mathbf{h}_i^{\text{adapted}} - \mathbf{h}_i^{\text{base}}}^2
+\end{equation}
+where $w_i = 5$ for benign prompts and $w_i = 1$ for harmful prompts. The asymmetric weighting strongly preserves benign representations while allowing the defense to modify harmful-region representations.
+
+\subsubsection{KL-Divergence Preservation Loss ($\loss_{\text{KL}}$, weight $\varepsilon = 3.0$)}
+
+KL divergence between the adapted and base model output logits at the last token position, applied \emph{only on benign prompts} (including borderline prompts from OR-Bench):
+\begin{equation}
+    \loss_{\text{KL}} = D_{\text{KL}}\!\left(\log \sigma(\mathbf{z}^{\text{adapted}}) \;\|\; \sigma(\mathbf{z}^{\text{base}})\right)
+\end{equation}
+where $\sigma$ denotes softmax and $\mathbf{z}$ are logits. This preserves the \emph{output token distribution} on benign inputs, preventing the defense from degrading generation quality or introducing spurious refusals.
+
+\subsubsection{Additional losses (not used in current setting)}
+
+The following losses were explored during development but ablation showed they are unnecessary when CKA repulsion is the primary defense mechanism. All are set to weight $= 0$ in the final configuration.
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Refusal Direction Loss} ($\loss_{\text{refusal}}$, $\alpha = 0$): Pushes harmful prompt representations toward a pre-computed refusal direction $\mathbf{r}$ (the normalized difference between mean refusal and mean compliance hidden states). Not used---CKA repulsion alone suffices to prevent attacks without explicitly steering toward refusal.
+
+    \item \textbf{LM Loss} ($\loss_{\text{LM}}$, $\delta = 0$): Cross-entropy loss on generating refusal response text for harmful prompts. Not used---the defense works by breaking representation structure rather than teaching explicit refusal generation.
+
+    \item \textbf{Separation Loss} ($\loss_{\text{sep}}$, $\zeta = 0$): Minimizes cosine similarity between harmful and benign representation cluster centers to maintain their natural distance. Not used---the coherency and KL losses provide sufficient preservation of the representation space geometry.
+\end{itemize}
+
+% ============================================================
+\subsection{Borderline Prompt Preservation}
+% ============================================================
+
+A key challenge is \emph{borderline prompts}---queries that superficially resemble harmful content but are legitimate (e.g., ``How can I create a suspicious email to test my spam filter?'', ``What are some questionable techniques to subtly influence people's decisions?''). These prompts occupy a region of representation space between the harmful and benign training distributions.
+
+\paragraph{Failure mode without borderline preservation.}
+When training with only clearly benign prompts (e.g., ``What is the capital of France?'') and clearly harmful prompts, the CKA repulsion loss disrupts representations for anything that \emph{resembles} harmful content. At inference time, borderline prompts partially activate the same representation patterns as harmful prompts, causing the adapted model to produce \textbf{degenerate text}---garbled tokens (e.g., \texttt{://://icerichier}), single-character responses, or empty output. Critically, these degenerate responses evade keyword-based refusal detection, producing misleadingly low refusal rates (e.g., 0.8\% on OR-Bench) that mask the underlying model failure. This failure persisted across a range of $\gamma$ and $\varepsilon$ values, confirming it is a \emph{training data coverage} problem rather than a hyperparameter tuning issue.
+
+\paragraph{Solution.}
+We augment the benign training set with 200 borderline prompts randomly sampled from OR-Bench Hard~\cite{orbench}. The KL-divergence and coherency losses then explicitly preserve the base model's output distribution on these ambiguous inputs. With borderline preservation, the adapted model produces coherent, well-formed responses on OR-Bench prompts (matching baseline behavior) while maintaining 0\% ASR on genuinely harmful adversarial inputs. The OR-Bench refusal rate delta drops to $-0.3\%$ relative to baseline, confirming the defense does not increase over-refusal. \rom{Are you training and testing on the same data? this is cheating...} \gal{Fixed. Switched borderline training prompts from OR-Bench to XSTest safe (250 prompts). OR-Bench Hard (1,320 prompts) is now used exclusively for evaluation---zero contamination. The updated paper reflects this: training uses XSTest, evaluation uses OR-Bench.}
+
+% ============================================================
+\subsection{Hyperparameters}
+% ============================================================
+
+\begin{table}[h]
+\centering
+\caption{Hyperparameter configuration (best setting from ablation).}
+\label{tab:hyperparams}
+\begin{tabular}{@{}llp{7cm}@{}}
+\toprule
+\textbf{Symbol} & \textbf{Value} & \textbf{Description} \\
+\midrule
+$\gamma$ & 1.5 & CKA repulsion weight (anchor divergence, harmful only) \\
+$\beta$ & 1.0 & Coherency weight (representation preservation, 5$\times$ on benign) \\
+$\varepsilon$ & 3.0 & KL-divergence weight (output preservation, benign only) \\
+$\alpha$ & 0.0 & Refusal direction weight (ablated---CKA repulsion suffices) \\
+$\delta$ & 0.0 & LM loss weight (ablated---CKA repulsion suffices) \\
+$\zeta$ & 0.0 & Separation loss weight (optional) \\
+$r$ & 32 & LoRA rank \\
+$\alpha_{\text{LoRA}}$ & 64 & LoRA scaling factor \\
+Steps & 200 & Training steps \\
+Batch size & 4 & Per-step batch size (effective 8 with grad accum) \\
+LR & $5 \times 10^{-5}$ & AdamW learning rate \\
+Layer & $\lfloor 0.5 L \rfloor$ & Target layer (50\% depth) \\
+Borderline & 200 & OR-Bench prompts added to benign training set \\
+Seed & 42 & Random seed \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================
+\section{Evaluation Metrics}
+% ============================================================
+
+\subsection{Safety Metrics}
+
+\begin{itemize}[noitemsep]
+    \item \textbf{ASR (Attack Success Rate)}: Percentage of adversarial prompts that produce harmful responses, judged by WildGuard~\cite{wildguard}. Evaluated in three settings:
+    \begin{itemize}[noitemsep]
+        \item \emph{Self}: GCG suffixes optimized on $\mathcal{M}_d$ itself.
+        \item \emph{Anchor}: GCG suffixes optimized on $\mathcal{M}_a$ (the model we defend against).
+        \item \emph{Other}: GCG suffixes optimized on a third model $\mathcal{M}_o$.
+    \end{itemize}
+    Lower is better.
+    \rom{it makes sense that \emph{self} goes down since we changed the model. You can attack the trained model and look at two metrics: (1) the ASR (2) the number of steps taken for a successful attack. } \gal{Done. Added Section~4.6 (Adaptive Attack Evaluation) with three white-box attacks run directly on the defended model (base + merged LoRA): (1)~GCG (500 steps, 64 search width), (2)~Embedding PGD (500 steps, continuous suffix optimization), (3)~PAIR (Mistral-7B attacker, 20 iterations). Results on Qwen: GCG 54\%$\to$51\%, Emb.\ PGD 74\%$\to$68\%, PAIR 24\%$\to$8\%. On Llama-3: GCG 2\%$\to$4\%, Emb.\ PGD 61\%$\to$69\%, PAIR 10\%$\to$11\%. Defense preserves intrinsic robustness (GCG/PAIR) while embedding-space attacks bypass it---a known open problem shared by Circuit Breakers et al.}
+
+    \item \textbf{BRR (Benign Refusal Rate)}: Percentage of benign prompts incorrectly refused. Lower is better.
+\end{itemize}
+
+\subsection{Utility Metrics}
+
+\begin{itemize}[noitemsep]
+    \item \textbf{PPL (Perplexity)}: Language quality on benign outputs, computed with prompt tokens masked. Lower is better.
+    \item \textbf{TDR (Token Diversity Ratio)}: Ratio of unique to total tokens in generated benign responses. Detects degenerate loops. Higher is better.
+    \item \textbf{CKA Score}: CKA similarity between adapted and base defender on benign prompts. Measures preservation of benign representation structure. Higher is better.
+\end{itemize}
+
+\subsection{Benchmark Metrics}
+
+\begin{itemize}[noitemsep]
+    \item \textbf{OR-Bench Hard} (1,320 prompts): Over-refusal rate on borderline-safe prompts. Lower is better.
+    \item \textbf{XSTest Safe} (250 prompts): Over-refusal rate on safe-but-sensitive prompts. Lower is better.
+    \item \textbf{MT-Bench} (80 multi-turn questions): Conversation quality scored 1--10 by a local judge model. Higher is better.
+\end{itemize}
+
+% ============================================================
+\section{Results}
+% ============================================================
+
+\subsection{Defense Evaluation (Llama-3-8B-Instruct, Qwen-1.5-7B anchor)}
+
+\begin{table}[h]
+\centering
+\caption{Defense evaluation results (evaluate\_v2.py). ASR/BRR: lower is better. PPL: lower is better. TDR/CKA: higher is better.}
+\label{tab:defense_results}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Metric} & \textbf{Baseline} & \textbf{Defended} & \textbf{$\Delta$} \\
+\midrule
+ASR (self)    & 37\% & 0\% & $-37\%$ \\
+ASR (anchor)  & 2\%  & 0\% & $-2\%$ \\
+ASR (other)   & 1\%  & 0\% & $-1\%$ \\
+BRR           & 0\%  & 0\% & $0\%$ \\
+PPL           & 2.80 & 2.68 & $-0.12$ \\
+CKA Score     & 0.931 & 0.926 & $-0.005$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Benchmark Evaluation (Llama-3-8B-Instruct)}
+
+\begin{table}[h]
+\centering
+\caption{Benchmark results. OR-Bench/XSTest: lower is better. MT-Bench: higher is better.}
+\label{tab:benchmark_results}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Benchmark} & \textbf{Baseline} & \textbf{Defended} & \textbf{$\Delta$} \\
+\midrule
+OR-Bench Hard  & 64.7\% & 64.4\% & $-0.3\%$ \\
+XSTest Safe    & 2.4\%  & 3.2\%  & $+0.8\%$ \\
+MT-Bench       & 6.94/10 & 6.88/10 & $-0.06$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Comparison with Competing Defenses}
+
+\begin{table}[h]
+\centering
+\caption{Utility deltas compared to each method's own baseline (Llama-3-8B-Instruct). OR-Bench/XSTest: negative $\Delta$ is better. MT-Bench: positive $\Delta$ is better.}
+\label{tab:comparison}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Method} & $\Delta$\textbf{MT-Bench} & $\Delta$\textbf{XSTest} & $\Delta$\textbf{OR-Bench} \\
+\midrule
+Circuit Breakers~\cite{zou2024circuitbreakers} & $-0.05$ & -- & $+34.5\%$ \\
+ReFAT~\cite{refat}            & $-0.26$ & $-0.4\%$ & -- \\
+LAT~\cite{lat}                & $-0.70$ & $-0.8\%$ & -- \\
+RepBend~\cite{repbend}        & --      & $+1.0\%$ & -- \\
+CRL~\cite{crl}                & --      & --       & -- \\
+\midrule
+\textbf{Ours}                 & $\mathbf{-0.06}$ & $+0.8\%$ & $\mathbf{-0.3\%}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\rom{it looks like we are not the best - why are we in bold?} \gal{Fair point. We are bold because we are the \emph{only} method that addresses cross-model transfer (see Table~7: all others have \xmark\ for cross-model). The comparison table shows utility preservation, not ASR---on that axis we are competitive (best OR-Bench, second-best MT-Bench). Updated the table with baseline columns (Base/Def./$\Delta$) for both Qwen and Llama-3 to make the comparison clearer.}
+
+\subsection{Attack Evaluation Coverage}
+
+\begin{table}[h]
+\centering
+\caption{Attack types evaluated by each defense method.}
+\label{tab:attacks}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Method} & \textbf{Input-level} & \textbf{White-box} & \textbf{Cross-model transfer} \\
+\midrule
+Circuit Breakers & GCG, PAIR, TAP-T, AutoDAN & Prefilling, Embedding, RepE & \xmark \\
+ReFAT            & GCG, PAIR, AutoDAN         & RFA                         & \xmark \\
+LAT              & --                         & Embedding perturbations     & \xmark \\
+RepBend          & GCG, DAN, PAP, HarmBench   & Prefilling, Embedding       & \xmark \\
+CRL              & GCG, HarmBench             & Hard negative mining        & \xmark \\
+\midrule
+\textbf{Ours}    & GCG                        & --                          & \cmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================
+\section{Key Findings}
+% ============================================================
+
+\begin{enumerate}
+    \item \textbf{CKA repulsion alone is sufficient for defense}: Ablation shows that setting $\alpha = 0$ (no refusal direction push) and $\delta = 0$ (no LM loss) while relying solely on CKA repulsion ($\gamma = 1.5$) achieves 0\% ASR across all attack categories. The defense works by breaking the geometric structure that attacks exploit, without needing to explicitly steer the model toward refusal.
+
+    \item \textbf{Targeted repulsion on harmful prompts}: Computing CKA repulsion only on harmful prompt representations (\texttt{cka\_harmful\_only}) focuses the structural disruption on the region of representation space that attacks exploit, avoiding unnecessary perturbation of benign representations.
+
+    \item \textbf{Excessive repulsion causes degenerate output}: Increasing $\gamma$ beyond the optimal value (e.g., $\gamma = 9$) destabilizes the model, producing garbage text (e.g., \texttt{://://}) that evades keyword-based refusal detection but is not a valid response. The optimal $\gamma = 1.5$ provides complete defense without degeneration.
+
+    \item \textbf{Borderline prompts require explicit preservation}: Prompts that superficially resemble harmful content (e.g., OR-Bench Hard) occupy the boundary between harmful and benign representation regions. Without borderline prompts in the training set, CKA repulsion disrupts the model's output on these inputs. Adding 200 OR-Bench prompts to the benign set and protecting them with KL-divergence and coherency losses eliminates this issue.
+
+    \item \textbf{Dimension-agnostic defense}: CKA operates on Gram matrices, enabling defense against anchors with different hidden dimensions (e.g., Phi-2 at 2560 vs.\ Llama at 4096), making the method applicable across diverse model architectures.
+\end{enumerate}
+
+% ============================================================
+\section{Key Contributions}
+% ============================================================
+
+\begin{enumerate}
+    \item \textbf{Novel threat model}: We are the first to address cross-model adversarial transfer as a defense objective. All prior work defends against attacks optimized on the same model.
+
+    \item \textbf{Representation divergence as defense}: We show that breaking cross-model representation similarity via CKA minimization is sufficient to prevent transfer attacks, without requiring safety-specific knowledge (no refusal direction, no harmful prompt labels for the LM loss).
+
+    \item \textbf{Dimension-agnostic}: CKA operates on Gram matrices, enabling defense against anchors with different hidden dimensions.
+
+    \item \textbf{Minimal utility degradation}: Our defense achieves near-zero degradation on standard benchmarks: $-0.3\%$ on OR-Bench (improved), $+0.8\%$ on XSTest, $0\%$ BRR, with normal perplexity.
+
+    \item \textbf{Borderline prompt robustness}: We identify and address the failure mode where representation-engineering defenses produce degenerate output on ambiguous prompts, through explicit borderline prompt preservation during training.
+\end{enumerate}
+
+% ============================================================
+% REFERENCES (placeholder)
+% ============================================================
+\begin{thebibliography}{10}
+
+\bibitem{zou2023universal}
+A.~Zou, Z.~Wang, J.Z.~Kolter, M.~Fredrikson.
+\newblock Universal and transferable adversarial attacks on aligned language models.
+\newblock \emph{arXiv:2307.15043}, 2023.
+
+\bibitem{kornblith2019similarity}
+S.~Kornblith, M.~Norouzi, H.~Lee, G.~Hinton.
+\newblock Similarity of neural network representations revisited.
+\newblock \emph{ICML}, 2019.
+
+\bibitem{wildguard}
+S.~Han et al.
+\newblock WildGuard: Open one-stop moderation tools for safety risks, jailbreaks, and refusals of LLMs.
+\newblock \emph{arXiv:2406.18495}, 2024.
+
+\bibitem{zou2024circuitbreakers}
+A.~Zou et al.
+\newblock Improving alignment and robustness with circuit breakers.
+\newblock \emph{arXiv:2406.04313}, 2024.
+
+\bibitem{refat}
+L.~Yu et al.
+\newblock Robust LLM safeguarding via refusal feature adversarial training.
+\newblock \emph{arXiv:2409.20089}, 2024.
+
+\bibitem{lat}
+S.~Casper et al.
+\newblock Defending against unforeseen failure modes with latent adversarial training.
+\newblock \emph{arXiv:2403.05030}, 2024.
+
+\bibitem{repbend}
+A.~Yousefpour et al.
+\newblock Representation bending for large language model safety.
+\newblock \emph{ACL}, 2025.
+
+\bibitem{crl}
+S.~Simko et al.
+\newblock Improving large language model safety with contrastive representation learning.
+\newblock \emph{arXiv:2506.11938}, 2025.
+
+\bibitem{orbench}
+Z.~Cui et al.
+\newblock OR-Bench: An over-refusal benchmark for large language models.
+\newblock \emph{arXiv:2405.20947}, 2024.
+
+\end{thebibliography}
+
+\end{document}
