@@ -1,0 +1,37 @@
+# AnchorRep config: Qwen1.5-14B-Chat
+# Reproduces the Qwen-1.5-14B row of tab:comparison.
+
+defender:
+  name: qwen14b
+  base_model: Qwen/Qwen1.5-14B-Chat
+  precision: fp16                              # 14B models use fp16 (fp32 exceeds single-GPU memory)
+
+anchor:
+  name: llama3
+  precision: fp16
+
+losses:
+  alpha:   0.15
+  beta:    1.0
+  gamma:   1.5
+  delta:   0.03
+  epsilon: 1.0
+
+training:
+  cka_scope: harmful_only
+  target_layer_pct: 0.5
+  stage2_steps: 200
+  stage2_lr: 2.0e-5
+  seed: 42
+
+lora:
+  rank: 32
+  alpha: 64
+
+borderline:
+  source: xstest
+  count: 200
+
+data:
+  harmful_prompts_file: data/advbench_train_split.json
+  gcg_data_path: attack_artifacts/advbench_suffixes_all_models.csv

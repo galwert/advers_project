@@ -1,0 +1,9 @@
+{
+  "model": "mistral",
+  "n_prompts": 500,
+  "baseline_refusals": 90,
+  "baseline_rate": 0.18,
+  "defended_refusals": 50,
+  "defended_rate": 0.1,
+  "delta": -0.07999999999999999
+}

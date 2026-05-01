@@ -1,0 +1,9 @@
+{
+  "model": "llama3",
+  "n_prompts": 500,
+  "baseline_refusals": 186,
+  "baseline_rate": 0.372,
+  "defended_refusals": 75,
+  "defended_rate": 0.15,
+  "delta": -0.222
+}

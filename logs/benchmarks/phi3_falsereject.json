@@ -1,0 +1,9 @@
+{
+  "model": "phi3",
+  "n_prompts": 500,
+  "baseline_refusals": 148,
+  "baseline_rate": 0.296,
+  "defended_refusals": 126,
+  "defended_rate": 0.252,
+  "delta": -0.044
+}

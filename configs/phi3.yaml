@@ -1,0 +1,37 @@
+# AnchorRep config: Phi-3-medium-4k-instruct (14B)
+# Reproduces the Phi-3 row of tab:comparison.
+
+defender:
+  name: phi3
+  base_model: microsoft/Phi-3-medium-4k-instruct
+  precision: fp16
+
+anchor:
+  name: llama3
+  precision: fp16
+
+losses:
+  alpha:   0.15
+  beta:    1.0
+  gamma:   2.0
+  delta:   0.08
+  epsilon: 0.5
+
+training:
+  cka_scope: harmful_only
+  target_layer_pct: 0.5
+  stage2_steps: 200
+  stage2_lr: 2.0e-4
+  seed: 42
+
+lora:
+  rank: 32
+  alpha: 64
+
+borderline:
+  source: xstest
+  count: 200
+
+data:
+  harmful_prompts_file: data/advbench_train_split.json
+  gcg_data_path: attack_artifacts/advbench_suffixes_all_models.csv

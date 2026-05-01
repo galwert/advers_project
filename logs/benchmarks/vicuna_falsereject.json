@@ -1,0 +1,9 @@
+{
+  "model": "vicuna",
+  "n_prompts": 500,
+  "baseline_refusals": 118,
+  "baseline_rate": 0.236,
+  "defended_refusals": 182,
+  "defended_rate": 0.364,
+  "delta": 0.128
+}

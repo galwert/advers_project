@@ -1,0 +1,37 @@
+# AnchorRep config: Mistral-7B-Instruct-v0.2
+# Reproduces the Mistral row of tab:comparison.
+
+defender:
+  name: mistral
+  base_model: mistralai/Mistral-7B-Instruct-v0.2
+  precision: fp32
+
+anchor:
+  name: qwen
+  precision: fp16
+
+losses:
+  alpha:   0.15
+  beta:    1.0
+  gamma:   0.7
+  delta:   0.04
+  epsilon: 0.8
+
+training:
+  cka_scope: all
+  target_layer_pct: 0.5
+  stage2_steps: 600
+  stage2_lr: 7.5e-5                            # Mistral-specific; see app:hyperparams:lr
+  seed: 42
+
+lora:
+  rank: 32
+  alpha: 64
+
+borderline:
+  source: xstest
+  count: 200
+
+data:
+  harmful_prompts_file: data/advbench_train_split.json
+  gcg_data_path: attack_artifacts/advbench_suffixes_all_models.csv

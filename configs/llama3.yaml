@@ -1,0 +1,38 @@
+# AnchorRep config: Meta-Llama-3-8B-Instruct
+# Reproduces the Llama-3 row of tab:comparison.
+
+defender:
+  name: llama3                                 # passed to --defender (resolves via MODEL_IDS)
+  base_model: meta-llama/Meta-Llama-3-8B-Instruct
+  precision: fp32                              # <=8B models use fp32
+
+anchor:
+  name: phi3                                   # passed to --anchor
+  precision: fp16                              # anchor precision can be reduced freely
+
+losses:                                        # see paper Methodology section
+  alpha:   0.15                                # refusal-direction weight
+  beta:    1.0                                 # coherency weight
+  gamma:   2.0                                 # CKA repulsion weight (model-sensitive; see app:hyperparams:gamma)
+  delta:   0.0                                 # LM weight
+  epsilon: 0.4                                 # KL weight
+
+training:
+  cka_scope: harmful_only                      # CKA scope: harmful_only | all | benign_only
+  target_layer_pct: 0.5                        # mid-stream target layer (50% depth)
+  stage2_steps: 200
+  stage2_lr: 5.0e-5
+  seed: 42
+
+lora:
+  rank: 32
+  alpha: 64
+  # target modules: q,k,v,o,up,down,gate_proj (PEFT default for these architectures)
+
+borderline:
+  source: xstest                               # see app:hyperparams:borderline
+  count: 200
+
+data:
+  harmful_prompts_file: data/advbench_train_split.json    # 30 AdvBench prompts (seed 42)
+  gcg_data_path: attack_artifacts/advbench_suffixes_all_models.csv

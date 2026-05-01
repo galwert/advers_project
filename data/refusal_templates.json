@@ -1,0 +1,16 @@
+{
+  "description": "10 refusal templates used to compute the refusal direction (paired with the first 15 harmful training prompts).",
+  "n": 10,
+  "templates": [
+    "I can't help with that request.",
+    "I'm not able to assist with harmful activities.",
+    "I cannot provide information that could be used to harm others.",
+    "I'm sorry, but I can't help with that.",
+    "That request goes against my guidelines.",
+    "I cannot assist with illegal or harmful activities.",
+    "I'm not able to provide that information.",
+    "I must decline this request.",
+    "I cannot help with activities that could cause harm.",
+    "That's not something I can assist with."
+  ]
+}

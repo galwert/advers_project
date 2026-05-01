@@ -1,0 +1,9 @@
+{
+  "model": "qwen-14b",
+  "n_prompts": 500,
+  "baseline_refusals": 173,
+  "baseline_rate": 0.346,
+  "defended_refusals": 182,
+  "defended_rate": 0.364,
+  "delta": 0.018
+}

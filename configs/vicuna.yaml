@@ -1,0 +1,37 @@
+# AnchorRep config: Vicuna-7B-v1.5
+# Reproduces the Vicuna row of tab:comparison.
+
+defender:
+  name: vicuna
+  base_model: lmsys/vicuna-7b-v1.5
+  precision: fp32
+
+anchor:
+  name: qwen
+  precision: fp16
+
+losses:
+  alpha:   0.15
+  beta:    1.0
+  gamma:   0.5
+  delta:   0.08
+  epsilon: 1.5
+
+training:
+  cka_scope: harmful_only
+  target_layer_pct: 0.5
+  stage2_steps: 200
+  stage2_lr: 2.0e-4
+  seed: 42
+
+lora:
+  rank: 32
+  alpha: 64
+
+borderline:
+  source: xstest
+  count: 200
+
+data:
+  harmful_prompts_file: data/advbench_train_split.json
+  gcg_data_path: attack_artifacts/advbench_suffixes_all_models.csv
