@@ -115,17 +115,14 @@ Expected behavior:
 
 ## Step 7: Compare against the released log
 
-```bash
-diff <(jq -r '.per_target_summary["mistral"]' logs/audit/transfer_asr_verified.json) \
-     <(cat logs/cross_model_transfer/mistral_repro/summary.csv)
-```
+Compare the reproduced summary against the defender's row in the paper's main results table (`tab:comparison`). The released audit log (`logs/audit/transfer_asr_verified.json`) contains per-prompt manual-verification entries that you can also cross-check against.
 
-Or, the loose comparison:
+Loose comparison:
 
 ```bash
 cat logs/cross_model_transfer/mistral_repro/summary.csv
-# Expected approx: defended_asr ~0.01-0.05 (paper reports 0/1/2% post-manual-verification).
-# Larger drift indicates a problem.
+# Expected: defended_asr aligned with the main results table (Mistral row of tab:comparison).
+# Larger drift from the paper's main-table values indicates a problem.
 ```
 
 ## Step 8: Evaluate the released adapter (no-train path)
@@ -145,9 +142,9 @@ This validates the released adapter works directly via `peft.PeftModel.from_pret
 | 3 | `huggingface-cli login` succeeds. |
 | 4 | All 4 snapshot_download calls complete with no 401/403 errors. |
 | 5 | Adapter file appears at `runs/mistral/adapter/adapter_model.safetensors`. |
-| 6 | `summary.csv` exists; defended ASR < 10% (loose), < 5% (tight). |
-| 7 | Reproduced ASR matches released log within seed-42 variance (per-model standard deviation up to 1.91% across four independent training-subset draws; see paper appendix `app:seed_variance`). |
-| 8 | Released adapter loads without warnings; produces ASR consistent with the paper. |
+| 6 | `summary.csv` exists; defended ASR matches the defender's row in the paper's main results table (`tab:comparison`). |
+| 7 | Reproduced ASR matches the main-table values within seed-42 variance (per-model standard deviation up to 1.91% across four independent training-subset draws; see paper appendix `app:seed_variance`). |
+| 8 | Released adapter loads without warnings; produces ASR consistent with the paper's main results table. |
 
 ## What to record
 
@@ -164,7 +161,7 @@ For each smoke-test run, log:
 - **401 / 403 on Llama-3 download**: token lacks access; re-accept the Llama 3 license on the HF model page.
 - **OOM during training**: 14B configs need fp16 (already set in YAML); for 7B fp32 on cards < 40 GB, drop precision to fp16 by overriding: `... --output-dir runs/mistral_fp16 --precision fp16`.
 - **NaN losses early in training**: usually means `lr` is too high for the chosen anchor. Lower by 2x.
-- **Reproduced ASR diverges by > 5%**: re-check that `data/advbench_train_split.json` was not modified, and that `seed: 42` is preserved in the YAML.
+- **Reproduced ASR doesn't match the paper's main-table row for the defender**: re-check that `data/advbench_train_split.json` was not modified, that `seed: 42` is preserved in the YAML, and that the released adapter (not a locally-retrained one) is being used.
 
 ## When to run
 

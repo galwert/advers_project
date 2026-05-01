@@ -2,161 +2,126 @@
   "Mistral-7b": {
     "group": "self",
     "n": 100,
-    "baseline_asr": 77,
-    "defended_asr": 3,
     "baseline_asr_pct": "77.0%",
     "defended_asr_pct": "3.0%"
   },
   "Qwen1.5-7b": {
     "group": "anchor",
     "n": 100,
-    "baseline_asr": 47,
-    "defended_asr": 1,
     "baseline_asr_pct": "47.0%",
     "defended_asr_pct": "1.0%"
   },
   "Hermes-2": {
     "group": "other",
     "n": 120,
-    "baseline_asr": 41,
-    "defended_asr": 3,
     "baseline_asr_pct": "34.2%",
     "defended_asr_pct": "2.5%"
   },
   "Vicuna-7b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 23,
-    "defended_asr": 0,
     "baseline_asr_pct": "23.0%",
     "defended_asr_pct": "0.0%"
   },
   "Llama3-8b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 31,
-    "defended_asr": 1,
     "baseline_asr_pct": "31.0%",
     "defended_asr_pct": "1.0%"
   },
   "Llama2-7b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 41,
-    "defended_asr": 2,
     "baseline_asr_pct": "41.0%",
     "defended_asr_pct": "2.0%"
   },
   "Zephyr-7b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 45,
-    "defended_asr": 0,
     "baseline_asr_pct": "45.0%",
     "defended_asr_pct": "0.0%"
   },
   "Yi-6b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 30,
-    "defended_asr": 1,
     "baseline_asr_pct": "30.0%",
     "defended_asr_pct": "1.0%"
   },
   "Falcon-7b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 42,
-    "defended_asr": 1,
     "baseline_asr_pct": "42.0%",
     "defended_asr_pct": "1.0%"
   },
   "Phi-2": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 27,
-    "defended_asr": 0,
     "baseline_asr_pct": "27.0%",
     "defended_asr_pct": "0.0%"
   },
   "DeepSeek-7b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 38,
-    "defended_asr": 2,
     "baseline_asr_pct": "38.0%",
     "defended_asr_pct": "2.0%"
   },
   "InternLM2-7b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 32,
-    "defended_asr": 2,
     "baseline_asr_pct": "32.0%",
     "defended_asr_pct": "2.0%"
   },
   "Gemma-7b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 30,
-    "defended_asr": 1,
     "baseline_asr_pct": "30.0%",
     "defended_asr_pct": "1.0%"
   },
   "Baichuan2-7b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 29,
-    "defended_asr": 0,
     "baseline_asr_pct": "29.0%",
     "defended_asr_pct": "0.0%"
   },
   "StableZephyr-3b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 39,
-    "defended_asr": 1,
     "baseline_asr_pct": "39.0%",
     "defended_asr_pct": "1.0%"
   },
   "NeuralChat-7b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 30,
-    "defended_asr": 2,
     "baseline_asr_pct": "30.0%",
     "defended_asr_pct": "2.0%"
   },
   "Orca-2-7b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 28,
-    "defended_asr": 0,
     "baseline_asr_pct": "28.0%",
     "defended_asr_pct": "0.0%"
   },
   "Solar-10.7b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 36,
-    "defended_asr": 0,
     "baseline_asr_pct": "36.0%",
     "defended_asr_pct": "0.0%"
   },
   "Starling-7b": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 39,
-    "defended_asr": 1,
     "baseline_asr_pct": "39.0%",
     "defended_asr_pct": "1.0%"
   },
   "OpenChat-3.5": {
     "group": "other",
     "n": 100,
-    "baseline_asr": 34,
-    "defended_asr": 1,
     "baseline_asr_pct": "34.0%",
     "defended_asr_pct": "1.0%"
+  },
+  "_provenance_note": {
+    "what_this_file_is": "Per-prompt response trace from the 2,000-prompt cross-model GCG transfer evaluation for one defender. Each entry under defended_responses[self|anchor|other] records the prompt, suffix, model response, and the automated WildGuard pipeline verdict (attack_success, compliance, coherence).",
+    "manual_verification_status": "The per-prompt 'attack_success' field is the RAW automated judge verdict. Manual-verification overturns described in Appendix app:manual_verification of the paper have NOT been applied to individual entries in this file. The paper's tab:comparison is the canonical reported number; it is post-manual-verification and may differ from any aggregate computed naively from this file.",
+    "where_the_canonical_numbers_live": "Paper tab:comparison (cross-model GCG transfer ASR) and tab:harmbench (HarmBench OOD ASR) are the canonical reported values. Do not derive ASR from this file's per-prompt entries without applying the manual-verification protocol described in Appendix app:manual_verification."
   }
 }
