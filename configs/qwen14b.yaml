@@ -18,6 +18,7 @@ losses:
   epsilon: 1.0
 
 training:
+  alignment: cka
   cka_scope: harmful_only
   target_layer_pct: 0.5
   stage2_steps: 200

@@ -92,3 +92,23 @@ python -m anchor_rep.run_with_config \
 3. Pick an anchor model with high cross-family representational distance (paper Appendix `app:hyperparams:anchor`).
 4. Tune `gamma`: start at 1.0 and adjust based on initial defender-anchor CKA. Use BGR as an early-stop signal.
 5. Run a short hyperparameter sweep over `alpha`, `epsilon`, `delta`. Paper Appendix `app:hyperparams` documents the search ranges.
+
+## Custom hyperparameter sweeps
+
+Use `configs/custom.yaml.example` as a starting template:
+
+```bash
+cp configs/custom.yaml.example configs/custom.yaml
+# edit configs/custom.yaml
+bash scripts/train_one.sh custom
+# or
+bash scripts/train_and_eval.sh custom
+```
+
+Any flag exposed by `anchor_rep.train` that isn't covered by the YAML schema can still be passed on the command line:
+
+```bash
+bash scripts/train_one.sh custom --no_lm_loss --grad_accum 4 --use_gcg_training
+```
+
+Extra arguments are forwarded verbatim to `train.py`, so the YAML defines the base config and the CLI applies overrides on top.

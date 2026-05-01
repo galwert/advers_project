@@ -1407,6 +1407,11 @@ def train_defense_stage2_v2(
                 lm_out = defender_model(**lm_enc, labels=labels)
                 loss_lm_total = loss_lm_total + lm_out.loss
 
+        # Initialize losses that may be skipped depending on alignment method.
+        # Must be set before the alignment-conditional block so the unconditional
+        # loss-sum at the bottom can reference them.
+        loss_benign_cka = torch.tensor(0.0, device=device)
+
         # Compute batch-level CKA anchor repulsion
         if config.alignment_method == AlignmentMethod.CKA:
             if config.cka_multi_mode == "concat" and _multi_layer:
@@ -1444,7 +1449,6 @@ def train_defense_stage2_v2(
                     loss_anchor_total = sum(cka_layer_losses) / total_weight
 
             # Benign CKA preservation: maximize CKA on benign prompts
-            loss_benign_cka = torch.tensor(0.0, device=device)
             if config.alignment_method == AlignmentMethod.CKA:
                 for dl in _d_layers:
                     al = _a_layers[_d_layers.index(dl)] if dl in _d_layers else dl

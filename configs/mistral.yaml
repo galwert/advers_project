@@ -18,7 +18,8 @@ losses:
   epsilon: 0.8
 
 training:
-  cka_scope: all
+  alignment: cka
+  cka_scope: all                               # scope=all doubles CKA per-batch load; needs 600 steps
   target_layer_pct: 0.5
   stage2_steps: 600
   stage2_lr: 7.5e-5                            # Mistral-specific; see app:hyperparams:lr

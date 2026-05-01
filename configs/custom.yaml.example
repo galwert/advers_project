@@ -1,0 +1,48 @@
+# AnchorRep custom config template.
+# Copy this file to `configs/custom.yaml` and edit any value.
+# Then run: `bash scripts/train_one.sh custom`
+#
+# All keys are optional; values inherit from train.py argparse defaults if omitted.
+# See docs/config_reference.md for the full key reference and meaning.
+
+defender:
+  name: mistral                                # alias used by train.py: llama3 | mistral | vicuna | qwen14b | phi3
+                                               # OR a Hugging Face model id directly:
+                                               # name: mistralai/Mistral-7B-Instruct-v0.2
+  base_model: mistralai/Mistral-7B-Instruct-v0.2  # documented for clarity (alias resolves to this)
+  precision: fp32                              # fp32 | fp16 | 4bit. <=8B uses fp32; 14B uses fp16.
+
+anchor:
+  name: qwen                                   # short alias of the frozen anchor model
+  precision: fp16                              # anchor precision; fp16 is fine (CKA is scale-invariant)
+
+losses:                                        # five loss weights, see paper Methodology section
+  alpha:   0.15                                # refusal-direction weight (lower = less refusal)
+  beta:    1.0                                 # coherency weight (always 1.0 in paper)
+  gamma:   0.7                                 # CKA repulsion weight (most model-sensitive; range 0.3 to 2.0)
+  delta:   0.04                                # LM loss weight (next-token preservation on harmful)
+  epsilon: 0.8                                 # KL weight (logit preservation on benign)
+
+training:
+  alignment: cka                               # cka | projection | pca | procrustes (paper uses cka)
+  cka_scope: all                               # harmful_only | all | benign_only | gcg_only | harmful_and_gcg
+  target_layer_pct: 0.5                        # 0.0 to 1.0; mid-stream (0.5) is the paper choice
+  stage2_steps: 600                            # gradient steps. scope=harmful_only converges in 200; scope=all needs 400 to 600
+  stage2_lr: 7.5e-5                            # learning rate; per-model values listed in paper appendix
+  seed: 42                                     # random seed for data shuffling and LoRA init
+
+lora:
+  rank: 32                                     # LoRA rank
+  alpha: 64                                    # LoRA alpha (typically 2x rank)
+
+borderline:
+  source: xstest                               # xstest | wildguard | orbench | falsereject
+  count: 200                                   # number of borderline prompts (excluded from CKA, gets KL preservation)
+
+data:
+  harmful_prompts_file: data/advbench_train_split.json    # 30 harmful prompts; replace with your own JSON if needed
+  gcg_data_path: attack_artifacts/advbench_suffixes_all_models.csv
+
+# Tip: any flag not exposed here can still be set on the command line:
+#   bash scripts/train_one.sh custom --no_lm_loss --grad_accum 4
+# Extra flags after the script name are forwarded verbatim to train.py.

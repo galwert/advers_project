@@ -31,25 +31,69 @@ CUDA-capable GPU is required for training and most eval scripts. Adapter trainin
 
 ## Quick start
 
-Train a defender adapter from scratch (Mistral example):
+Four common workflows are wrapped in single shell commands:
+
+### 1. Train only
+
+Train a defender from scratch with paper hyperparameters:
 
 ```bash
-python -m anchor_rep.run_with_config \
-    --config configs/mistral.yaml \
-    --output-dir runs/mistral
+bash scripts/train_one.sh mistral
 ```
 
-Evaluate a pre-trained adapter from the HuggingFace Collection:
+Or with a custom hyperparameter config (copy `configs/custom.yaml.example` to `configs/custom.yaml` and edit):
 
 ```bash
-python eval/cross_model_transfer.py \
-    --base-model mistralai/Mistral-7B-Instruct-v0.2 \
-    --adapter anonsubmission12345/AnchorRep-Mistral-7B-Instruct-v0.2 \
-    --suffixes-csv attack_artifacts/advbench_suffixes_all_models.csv \
-    --output-dir logs/cross_model_transfer/mistral_repro
+bash scripts/train_one.sh custom
 ```
 
-Step-by-step recipes mapped to paper tables: `docs/reproducibility.md`.
+Or override individual flags on the command line:
+
+```bash
+bash scripts/train_one.sh mistral --gamma 0.5 --stage2_steps 400
+```
+
+### 2. Eval only (no training)
+
+Evaluate the released HuggingFace adapter for a defender (default):
+
+```bash
+bash scripts/eval_only.sh mistral
+```
+
+Evaluate a locally-trained adapter:
+
+```bash
+bash scripts/eval_only.sh mistral runs/mistral/adapter
+```
+
+Evaluate any HuggingFace adapter compatible with the base model:
+
+```bash
+bash scripts/eval_only.sh mistral some-user/SomeOtherAdapter
+```
+
+### 3. Train and evaluate, end-to-end
+
+```bash
+bash scripts/train_and_eval.sh mistral
+bash scripts/train_and_eval.sh custom
+```
+
+This runs `train_one.sh` followed immediately by `eval_one.sh` on the freshly-trained adapter.
+
+### 4. Reproduce the full main results table
+
+```bash
+bash scripts/reproduce_main.sh
+```
+
+Loops over all 5 defenders and produces per-row outputs that aggregate into `tab:comparison`.
+
+**More examples:** [`docs/usage_examples.md`](docs/usage_examples.md) is a copy-paste cookbook covering every common workflow (eval-only, train-only, train+eval, custom configs, CLI overrides, full reproduction, anchor caching, batch sweeps).
+
+Step-by-step recipes mapped to each paper table: [`docs/reproducibility.md`](docs/reproducibility.md).
+Full YAML key reference: [`docs/config_reference.md`](docs/config_reference.md).
 
 ## How the defense works
 
