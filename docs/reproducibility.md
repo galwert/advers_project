@@ -30,17 +30,21 @@ Approximate runtime on a single L40S (48 GB): 15 to 25 minutes per defender.
 
 ## 2. Skip training, evaluate the released adapters
 
-The 5 paper-pick adapters are already published in the companion HuggingFace Collection. To evaluate without training:
+The 5 paper-pick adapters are already published in the companion HuggingFace Collection. To evaluate one defender end-to-end (generation + WildGuard pipeline + Self/Anchor/Other breakdown):
 
 ```bash
-python eval/cross_model_transfer.py \
-    --base-model mistralai/Mistral-7B-Instruct-v0.2 \
-    --adapter anonsubmission12345/AnchorRep-Mistral-7B-Instruct-v0.2 \
-    --suffixes-csv attack_artifacts/advbench_suffixes_all_models.csv \
-    --output-dir logs/cross_model_transfer/mistral_repro
+bash scripts/eval_one.sh mistral
 ```
 
-This reproduces the cross-model transfer ASR column.
+`eval_one.sh` runs three steps:
+
+1. `eval/cross_model_transfer.py` --- generates the 2,000 prompt $\times$ defender responses on both baseline and defended sides; saves `defended_model_results.csv`.
+2. `eval/judge_pipeline.py` --- scores each defended response through the canonical WildGuard pipeline (Stages 0--5 from Appendix `app:judge`: degenerate-output / gibberish / quality / refusal / auto-classification / WildGuard tiebreaker); saves `defended_judged.csv` with an `is_jailbroken` column.
+3. `eval/aggregate_asr.py` --- breaks the verified ASR down by attack-source role (Self / Anchor / Other) and writes `defended_judged_summary.json`.
+
+The `is_jailbroken` column matches the verdict reported in `tab:comparison`. The simple refusal-keyword stat printed by step 1 is just a quick sanity check.
+
+To call the steps independently or with a non-default adapter, see `scripts/eval_one.sh`.
 
 ## 3. Reproduce the full `tab:comparison`
 

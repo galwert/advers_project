@@ -63,5 +63,27 @@ python eval/cross_model_transfer.py \
     --suffixes-csv attack_artifacts/advbench_suffixes_all_models.csv \
     --output-dir "$OUTPUT_DIR"
 
+# Score the defended responses through the canonical WildGuard pipeline
+# (Stages 0-5 from Appendix app:judge). This is what tab:comparison reports;
+# the simple refusal-keyword stat printed by cross_model_transfer.py is only
+# a quick sanity check.
+echo
+echo "[eval_one] judging defended responses through WildGuard pipeline..."
+python eval/judge_pipeline.py \
+    --input  "$OUTPUT_DIR/defended_model_results.csv" \
+    --output "$OUTPUT_DIR/defended_judged.csv" \
+    --judge  allenai/wildguard
+
+echo
+echo "[eval_one] aggregating Self / Anchor / Other / Transfer ASR..."
+python eval/aggregate_asr.py \
+    --input    "$OUTPUT_DIR/defended_judged.csv" \
+    --defender "$DEFENDER" \
+    --summary  "$OUTPUT_DIR/defended_judged_summary.json"
+
 echo
 echo "[eval_one] done. Results in: $OUTPUT_DIR"
+echo "  - base_model_results.csv       : raw baseline responses"
+echo "  - defended_model_results.csv   : raw defended responses"
+echo "  - defended_judged.csv          : per-prompt WildGuard pipeline verdict"
+echo "  - defended_judged_summary.json : Self / Anchor / Other / Transfer ASR (paper-comparable)"
