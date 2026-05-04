@@ -20,27 +20,34 @@ fi
 DEFENDER="$1"
 DEFAULT_ADAPTER=""
 DEFAULT_BASE=""
+DEFENDER_LABEL=""   # short name written into the target_model column; must
+                    # match aggregate_asr.py's DEFENDER_INFO['self'] entry.
 
 case "$DEFENDER" in
     llama3)
         DEFAULT_ADAPTER="anonsubmission12345/AnchorRep-Llama-3-8B-Instruct"
         DEFAULT_BASE="meta-llama/Meta-Llama-3-8B-Instruct"
+        DEFENDER_LABEL="Llama3-8b"
         ;;
     mistral)
         DEFAULT_ADAPTER="anonsubmission12345/AnchorRep-Mistral-7B-Instruct-v0.2"
         DEFAULT_BASE="mistralai/Mistral-7B-Instruct-v0.2"
+        DEFENDER_LABEL="Mistral-7b"
         ;;
     vicuna)
         DEFAULT_ADAPTER="anonsubmission12345/AnchorRep-Vicuna-7B-v1.5"
         DEFAULT_BASE="lmsys/vicuna-7b-v1.5"
+        DEFENDER_LABEL="Vicuna-7b"
         ;;
     qwen14b)
         DEFAULT_ADAPTER="anonsubmission12345/AnchorRep-Qwen1.5-14B-Chat"
         DEFAULT_BASE="Qwen/Qwen1.5-14B-Chat"
+        DEFENDER_LABEL="Qwen1.5-14b"
         ;;
     phi3)
         DEFAULT_ADAPTER="anonsubmission12345/AnchorRep-Phi-3-medium-4k-instruct"
         DEFAULT_BASE="microsoft/Phi-3-medium-4k-instruct"
+        DEFENDER_LABEL="Phi-3-medium"
         ;;
     *)
         echo "[error] unknown defender: $DEFENDER"
@@ -61,7 +68,8 @@ python eval/cross_model_transfer.py \
     --base-model "$DEFAULT_BASE" \
     --adapter "$ADAPTER" \
     --suffixes-csv attack_artifacts/advbench_suffixes_all_models.csv \
-    --output-dir "$OUTPUT_DIR"
+    --output-dir "$OUTPUT_DIR" \
+    --defender-label "$DEFENDER_LABEL"
 
 # Score the defended responses through the canonical WildGuard pipeline
 # (Stages 0-5 from Appendix app:judge). This is what tab:comparison reports;

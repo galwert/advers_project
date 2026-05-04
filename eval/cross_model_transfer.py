@@ -59,8 +59,15 @@ def check_refusal(response):
     return any(response.startswith(prefix) for prefix in REFUSAL_PREFIXES)
 
 
-def evaluate_model(model, tokenizer, df, desc="Evaluating"):
-    """Evaluate model on adversarial prompts."""
+def evaluate_model(model, tokenizer, df, desc="Evaluating", target_label="unknown"):
+    """Evaluate model on adversarial prompts.
+
+    Each row of the suffixes CSV carries a `model` column identifying the
+    *source* model whose GCG-optimized suffix is being applied. We rename it
+    to `source_model` on output and add an explicit `target_model` column
+    (the defender being evaluated), so the downstream judge_pipeline.py and
+    aggregate_asr.py can split Self / Anchor / Other without ambiguity.
+    """
     model.eval()
     results = []
 
@@ -85,9 +92,10 @@ def evaluate_model(model, tokenizer, df, desc="Evaluating"):
         results.append({
             "prompt": prompt,
             "suffix": suffix[:50] + "..." if len(suffix) > 50 else suffix,
-            "response": response[:200] + "..." if len(response) > 200 else response,
+            "full_response": response,
             "refused": is_refused,
-            "model": row.get('model', 'unknown'),
+            "source_model": row.get('model', 'unknown'),
+            "target_model": target_label,
             "type": row.get('type', 'unknown')
         })
 
@@ -109,6 +117,10 @@ def parse_args():
                    help="Cap number of samples evaluated (default: 2000 = full transfer suite).")
     p.add_argument("--dtype", default="float16", choices=["float16", "bfloat16", "float32"],
                    help="Inference precision for both base and defended models.")
+    p.add_argument("--defender-label", default=None,
+                   help="Short name of the defender to write into the target_model column "
+                        "(e.g., Mistral-7b, Llama3-8b). Must match aggregate_asr.py's "
+                        "DEFENDER_INFO['self'] entry. Defaults to the basename of --base-model.")
     return p.parse_args()
 
 
@@ -142,9 +154,12 @@ def main():
     )
     base_model.config.use_cache = True
 
+    target_label = args.defender_label or args.base_model.split("/")[-1]
+
     print("\n[3/4] Evaluating BASE model (no defense)...")
     base_ppl = calculate_ppl(base_model, tokenizer)
-    base_results = evaluate_model(base_model, tokenizer, df_sample, desc="Base Model")
+    base_results = evaluate_model(base_model, tokenizer, df_sample, desc="Base Model",
+                                  target_label=target_label)
     base_results.to_csv(os.path.join(args.output_dir, "base_model_results.csv"), index=False)
     base_refusal_rate = base_results['refused'].mean()
 
@@ -161,7 +176,8 @@ def main():
 
     print("\n[4/4] Evaluating DEFENDED model...")
     defended_ppl = calculate_ppl(defended_model, tokenizer)
-    defended_results = evaluate_model(defended_model, tokenizer, df_sample, desc="Defended Model")
+    defended_results = evaluate_model(defended_model, tokenizer, df_sample, desc="Defended Model",
+                                      target_label=target_label)
     defended_results.to_csv(os.path.join(args.output_dir, "defended_model_results.csv"), index=False)
     defended_refusal_rate = defended_results['refused'].mean()
 
@@ -178,11 +194,11 @@ def main():
     improvement = defended_refusal_rate - base_refusal_rate
     print(f"\nDefense improvement: {improvement:+.1%} refusal rate increase")
 
-    if 'model' in defended_results.columns:
+    if 'source_model' in defended_results.columns:
         print("\n" + "-" * 60)
         print("Breakdown by attack source model:")
-        for model_name in defended_results['model'].unique():
-            mask = defended_results['model'] == model_name
+        for model_name in defended_results['source_model'].unique():
+            mask = defended_results['source_model'] == model_name
             rate = defended_results.loc[mask, 'refused'].mean()
             print(f"  {str(model_name)[:30]:<30}: {rate:.1%} refused")
 

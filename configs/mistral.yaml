@@ -4,7 +4,7 @@
 defender:
   name: mistral
   base_model: mistralai/Mistral-7B-Instruct-v0.2
-  precision: fp32
+  precision: fp16                              # canonical training precision (paper-pick adapter trained at fp16 — see run_seed_sweep_ms.sh)
 
 anchor:
   name: qwen

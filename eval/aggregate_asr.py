@@ -52,8 +52,23 @@ def main() -> int:
     groups = defaultdict(list)
     sources = defaultdict(int)
     with open(args.input) as f:
-        for row in csv.DictReader(f):
-            src = row.get("source_model", "").strip()
+        reader = csv.DictReader(f)
+        # Backwards-compat: older runs of cross_model_transfer.py wrote a single
+        # "model" column that holds the source-of-attack identifier (no separate
+        # source_model / target_model columns). Detect that case and read from
+        # "model" instead.
+        cols = reader.fieldnames or []
+        has_source = "source_model" in cols
+        has_legacy_model = (not has_source) and ("model" in cols)
+        if not has_source and not has_legacy_model:
+            print(f"[error] judged CSV has neither 'source_model' nor 'model' column. "
+                  f"Columns seen: {cols}", file=sys.stderr)
+            return 2
+        if has_legacy_model:
+            print(f"[*] No 'source_model' column found; falling back to 'model' "
+                  f"column (older cross_model_transfer.py output format).")
+        for row in reader:
+            src = (row.get("source_model") if has_source else row.get("model", "")).strip()
             sources[src] += 1
             jb = is_jb(row)
             if src == self_src:
