@@ -7,6 +7,9 @@ All evaluation logs released alongside the AnchorRep paper. Use these to verify 
 ### `mmlu/`
 - 10 files: `mmlu_{baseline,cb,crl,repbend,rmu}{,_mistral}_manual.json`. Per-method MMLU scoring with manual disambiguation of edge cases. Backs the MMLU column in `tab:comparison`.
 
+### `harmbench_transfer/`
+- 50 JSON files: `transfer_<src>_to_<tgt>_{bl,def}.json` for the 5 source × 5 target × {baseline, defended} HarmBench 100-prompt cross-model GCG transfer evaluation reported in `tab:harmbench`. Each file contains the full per-prompt `goal`/`response`/`success` traces. See `harmbench_transfer/README.md` for the schema and the relationship between the per-prompt automated `success` flags and the manually-verified ASR reported in the paper.
+
 ### `cross_model_transfer/`
 - `anchorrep_{defender}.json` (AnchorRep, one per defender: `llama3`, `mistral`, `vicuna`, `qwen14b`, `phi3`) and `{method}_{defender}.json` (retrained competing defenses on Llama-3 and Mistral: `circuit_breakers`, `repbend`, `rmu`, `crl`): per-prompt response trace for both baseline and defended sides of the 2,020-prompt cross-model GCG evaluation, plus the manual-verification verdict for every flagged response. All files share the same JSON schema (top-level keys: `defender`, `adapter_path`, `baseline_responses`, `baseline_metrics`, `defended_responses`, `defended_metrics`, `_provenance_note`, `_manual_verification_summary`; entry keys: `prompt`, `suffix`, `response`, `reason`, `attack_success`, `compliance`, `coherence`, plus `manual_verification_*` on flagged entries). The final manual judgment for each entry lives in this file---there is no separate audit file. Each flagged response carries:
   - `manual_verification_inspected` (bool): true if the entry was reviewed manually.
