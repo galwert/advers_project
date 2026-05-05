@@ -63,17 +63,29 @@ python eval/adaptive_attacks_advanced.py --adapter anonsubmission12345/AnchorRep
 
 ## 5. Reproduce `tab:harmbench`
 
+The 500 HarmBench-derived GCG suffixes (5 source models × 100 prompts each)
+are bundled in `attack_artifacts/harmbench_suffixes_all_sources.json`. To
+reproduce the column for a single target+source-source pair, filter that
+file by the `source` key:
+
 ```bash
-for d in llama3 mistral vicuna qwen14b phi3; do
-    python eval/cross_model_transfer.py \
-        --base-model "$(yq .defender.base_model configs/${d}.yaml)" \
-        --adapter "anonsubmission12345/AnchorRep-${d}" \
-        --suffixes-csv "attack_artifacts/harmbench_suffixes/gcg_suffixes_${d}_100.json" \
-        --output-dir "logs/cross_model_transfer/harmbench_${d}"
+for tgt in llama3 mistral vicuna qwen14b phi3; do
+    for src in llama3 mistral vicuna qwen14b phi3; do
+        python - <<PY
+import json, pandas as pd
+df = pd.read_json("attack_artifacts/harmbench_suffixes_all_sources.json", orient="records")
+df[df.source == "$src"].to_json("/tmp/hb_${src}.json", orient="records", indent=2)
+PY
+        python eval/cross_model_transfer.py \
+            --base-model "$(yq .defender.base_model configs/${tgt}.yaml)" \
+            --adapter "anonsubmission12345/AnchorRep-${tgt}" \
+            --suffixes "/tmp/hb_${src}.json" \
+            --output-dir "logs/cross_model_transfer/harmbench_${src}_to_${tgt}"
+    done
 done
 ```
 
-(Adjust the `--adapter` argument to the exact HF repo name; see `configs/{d}.yaml`.)
+(Adjust the `--adapter` argument to the exact HF repo name; see `configs/{tgt}.yaml`.)
 
 ## 6. Reproduce benchmarks (MT-Bench, MMLU, OR-Bench, XSTest, FalseReject, BGR)
 

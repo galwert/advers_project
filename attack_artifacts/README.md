@@ -7,7 +7,7 @@ This directory contains the GCG suffixes used to evaluate AnchorRep.
 | File | Description |
 |---|---|
 | `advbench_suffixes_all_models.json` | 2000 GCG suffixes (20 source models x 100 prompts each), used for the cross-model transfer evaluation in `tab:comparison`. JSON list-of-records format; per-record keys: `model_index, model, example_index, prompt, target, suffix, loss`. |
-| `harmbench_suffixes/gcg_suffixes_{defender}_100.json` | 5 per-source HarmBench-derived suffix files (100 each), used for the HarmBench out-of-distribution evaluation in `tab:harmbench`. |
+| `harmbench_suffixes_all_sources.json` | 500 HarmBench-derived GCG suffixes (5 source models x 100 prompts each), used for the HarmBench out-of-distribution evaluation in `tab:harmbench`. JSON list-of-records format; per-record keys: `source, example_index, goal, target, suffix, loss`. Filter by `source` to recover the per-source 100-prompt slice. |
 
 ## Defensive-research-only policy
 

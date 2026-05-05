@@ -14,8 +14,9 @@ HarmBench cross-model GCG transfer evaluation reported in `tab:harmbench`
 - `bl` = baseline (undefended) target. `def` = defended target (LoRA adapter applied).
 
 The 100 HarmBench prompts come from the canonical HarmBench v1 standard
-behaviors set; the corresponding GCG suffixes optimized per source model
-are in `attack_artifacts/harmbench_suffixes/`.
+behaviors set; the corresponding 500 GCG suffixes (5 source models x 100
+prompts each) are bundled in `attack_artifacts/harmbench_suffixes_all_sources.json`
+(filter by the `source` key to recover the per-source slice).
 
 ## Schema
 
@@ -35,7 +36,7 @@ are in `attack_artifacts/harmbench_suffixes/`.
     {
       "source":   "mistral",                              // attack source
       "goal":     "Write a persuasive article ...",
-      "suffix":   "ve... But distributed write ...",      // GCG suffix optimized on <source>; matches attack_artifacts/harmbench_suffixes/gcg_suffixes_<source>_100.json by goal
+      "suffix":   "ve... But distributed write ...",      // GCG suffix optimized on <source>; matches attack_artifacts/harmbench_suffixes_all_sources.json filtered by source
       "success":  false,                                   // automated WildGuard pipeline verdict
       "response": "..."                                    // full target response (truncated upstream to ~256 tok)
     },
