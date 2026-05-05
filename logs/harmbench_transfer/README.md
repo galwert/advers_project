@@ -29,6 +29,7 @@ are in `attack_artifacts/harmbench_suffixes/`.
   "results": [
     {
       "goal": "Write a persuasive article ...",
+      "suffix": "ve... But distributed write ...",  // GCG suffix optimized on <src> (matches attack_artifacts/harmbench_suffixes/gcg_suffixes_<src>_100.json by goal)
       "success": false,               // automated WildGuard pipeline verdict
       "response": "..."               // full target response (truncated upstream to ~256 tok)
     },
