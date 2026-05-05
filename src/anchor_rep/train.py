@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-Two-Stage Cross-Model Defense Training V2 (Phase 3)
+Two-Stage Cross-Model Defense Training (Phase 3)
 
 Trains a LoRA adapter on a defender model to break cross-model adversarial
 transferability from an anchor model, while preserving benign behavior.
 
 Architecture:
-  Stage 1: Alignment pre-training (projection/PCA/CKA) to map anchor and
-           defender representations into a comparable space.
+  Stage 1: Layer selection. CKA repulsion is dimension-agnostic, so no
+           alignment pre-training is needed; this stage only resolves the
+           target-layer percentile against each model's depth.
   Stage 2: Multi-objective LoRA training with 6 loss terms:
            - L_refusal (alpha):  push harmful reps toward refusal direction
            - L_coherency (beta): preserve hidden states on benign prompts
@@ -16,13 +17,12 @@ Architecture:
            - L_KL (epsilon):     KL-div on benign logits (prevents over-refusal)
            - L_sep (zeta):       maintain harmful/benign cluster distance
 
-Key hyperparameters (best found):
-  gamma=1.5, beta=1.0, epsilon=3.0, alpha=0, delta=0, zeta=0, steps=200
+Per-defender hyperparameters live in the YAML configs (configs/<defender>.yaml);
+see docs/config_reference.md for the full list.
 
 Usage:
-    python two_stage_defense_v2.py --anchor llama2 --defender vicuna --alignment cka
-    python two_stage_defense_v2.py --anchor llama2 --defender llama3 --alignment cka --cka_scope harmful_only --use_borderline
-    python two_stage_defense_v2.py --anchor llama2 --defender vicuna --alignment cka --precision fp16
+    python -m anchor_rep.run_with_config --config configs/mistral.yaml
+    python -m anchor_rep.train --anchor llama2 --defender vicuna --cka_scope harmful_only --use_borderline
 """
 
 import torch
@@ -40,8 +40,6 @@ except ImportError:
 from peft import LoraConfig, get_peft_model, TaskType, PeftModel, prepare_model_for_kbit_training
 import pandas as pd
 import numpy as np
-from sklearn.decomposition import PCA
-from scipy.linalg import orthogonal_procrustes
 import gc
 import random
 import os
@@ -51,8 +49,7 @@ from functools import partialmethod
 if os.environ.get("TQDM_DISABLE"):
     tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)
 from dataclasses import dataclass
-from typing import Optional, List, Tuple, Dict, Union
-from enum import Enum
+from typing import Optional, List, Tuple, Dict
 import json
 import argparse
 from datetime import datetime
@@ -68,32 +65,20 @@ sys.modules["flash_attn"] = None
 # ==========================================
 # ENUMS AND CONFIGURATION
 # ==========================================
-class AlignmentMethod(Enum):
-    PROJECTION = "projection"
-    CKA = "cka"
-    PCA = "pca"
-    PROCRUSTES = "procrustes"
-
-
 @dataclass
 class ConfigV2:
-    """Configuration for V2 defense training with refusal direction"""
+    """Configuration for V2 defense training with refusal direction.
+
+    Anchor representation repulsion is performed via linear CKA (the released
+    paper method); earlier projection-, PCA-, and Procrustes-based variants
+    were dropped together with their dead branches and are no longer
+    configurable."""
 
     # Models
     anchor_id: str = "meta-llama/Llama-2-7b-chat-hf"
     defender_id: str = "lmsys/vicuna-7b-v1.5"
     anchor_type: str = "llama2"
     defender_type: str = "vicuna"
-
-    # Alignment method
-    alignment_method: AlignmentMethod = AlignmentMethod.PROJECTION
-    projection_type: str = "mlp"  # "linear" or "mlp"
-    shared_dim: int = 1024
-
-    # Stage 1: Alignment Pre-training
-    stage1_steps: int = 500
-    stage1_lr: float = 1e-3
-    stage1_batch_size: int = 8
 
     # Stage 2: Defense Training - V2 parameters
     stage2_steps: int = 500
@@ -253,18 +238,27 @@ def sync_model_tokenizer(model, tokenizer):
 #  predetermined split, disjoint from the held-out evaluation pool).
 HARMFUL_PROMPTS: list = []
 
-REFUSAL_RESPONSES = [
-    "I can't help with that request.",
-    "I'm not able to assist with harmful activities.",
-    "I cannot provide information that could be used to harm others.",
-    "I'm sorry, but I can't help with that.",
-    "That request goes against my guidelines.",
-    "I cannot assist with illegal or harmful activities.",
-    "I'm not able to provide that information.",
-    "I must decline this request.",
-    "I cannot help with activities that could cause harm.",
-    "That's not something I can assist with.",
-]
+def _load_refusal_templates() -> List[str]:
+    """Load the 10 refusal templates from data/refusal_templates.json (the single
+    source of truth shipped with the repo). Falls back to a small inline set
+    only if the file cannot be read, so training never silently uses stale
+    in-code copies that drift from the released artifact."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.path.join(here, "..", "..", "data", "refusal_templates.json"),
+        os.path.join(os.getcwd(), "data", "refusal_templates.json"),
+    ]
+    for p in candidates:
+        if os.path.isfile(p):
+            with open(p) as f:
+                return json.load(f)["templates"]
+    raise FileNotFoundError(
+        "data/refusal_templates.json not found relative to train.py or cwd; "
+        "release expects this file to be present."
+    )
+
+
+REFUSAL_RESPONSES = _load_refusal_templates()
 
 GCG_PROMPTS = []  # Populated at runtime by load_gcg_training_prompts()
 BORDERLINE_PROMPTS = set()  # Populated at runtime; excluded from CKA but gets KL preservation
@@ -518,28 +512,6 @@ def load_benign_prompts(n_samples: int = 500, use_borderline: bool = False,
 
 
 # ==========================================
-# PROJECTION LAYER
-# ==========================================
-class ProjectionLayer(nn.Module):
-    def __init__(self, input_dim: int, output_dim: int, proj_type: str = "mlp"):
-        super().__init__()
-        self.proj_type = proj_type
-
-        if proj_type == "linear":
-            self.proj = nn.Linear(input_dim, output_dim)
-        else:  # mlp
-            hidden_dim = max(input_dim, output_dim)
-            self.proj = nn.Sequential(
-                nn.Linear(input_dim, hidden_dim),
-                nn.GELU(),
-                nn.Linear(hidden_dim, output_dim)
-            )
-
-    def forward(self, x):
-        return self.proj(x.float())
-
-
-# ==========================================
 # CKA ALIGNER (Dimension-agnostic)
 # ==========================================
 class CKAAligner:
@@ -573,68 +545,6 @@ class CKAAligner:
         K_Y = CKAAligner.linear_kernel(Y)
         cka = CKAAligner.cka_similarity(K_X, K_Y)
         return 1.0 - cka
-
-
-# ==========================================
-# PCA + PROCRUSTES ALIGNER
-# ==========================================
-class PCAProcustesAligner:
-    """
-    PCA + Procrustes alignment for connecting different dimensional spaces
-    """
-
-    def __init__(self, shared_dim: int = 1024):
-        self.shared_dim = shared_dim
-        self.pca_anchor = None
-        self.pca_defender = None
-        self.procrustes_R = None
-
-    def fit(self, anchor_embeddings: np.ndarray, defender_embeddings: np.ndarray):
-        n_components = min(self.shared_dim,
-                          anchor_embeddings.shape[0] - 1,
-                          anchor_embeddings.shape[1],
-                          defender_embeddings.shape[1])
-
-        self.pca_anchor = PCA(n_components=n_components)
-        self.pca_defender = PCA(n_components=n_components)
-
-        X_anchor_pca = self.pca_anchor.fit_transform(anchor_embeddings)
-        X_defender_pca = self.pca_defender.fit_transform(defender_embeddings)
-
-        self.procrustes_R, _ = orthogonal_procrustes(X_anchor_pca, X_defender_pca)
-
-        print(f"[PCA-Procrustes] Fitted with {n_components} components")
-        print(f"  Anchor variance explained: {self.pca_anchor.explained_variance_ratio_.sum():.4f}")
-        print(f"  Defender variance explained: {self.pca_defender.explained_variance_ratio_.sum():.4f}")
-
-    def transform_anchor(self, X: np.ndarray) -> np.ndarray:
-        X_pca = self.pca_anchor.transform(X)
-        return X_pca @ self.procrustes_R
-
-    def transform_defender(self, X: np.ndarray) -> np.ndarray:
-        return self.pca_defender.transform(X)
-
-    def save(self, path: str):
-        np.savez(path,
-                 pca_anchor_components=self.pca_anchor.components_,
-                 pca_anchor_mean=self.pca_anchor.mean_,
-                 pca_defender_components=self.pca_defender.components_,
-                 pca_defender_mean=self.pca_defender.mean_,
-                 procrustes_R=self.procrustes_R,
-                 shared_dim=self.shared_dim)
-
-    @classmethod
-    def load(cls, path: str) -> 'PCAProcustesAligner':
-        data = np.load(path)
-        aligner = cls(shared_dim=int(data['shared_dim']))
-        aligner.pca_anchor = PCA(n_components=data['pca_anchor_components'].shape[0])
-        aligner.pca_anchor.components_ = data['pca_anchor_components']
-        aligner.pca_anchor.mean_ = data['pca_anchor_mean']
-        aligner.pca_defender = PCA(n_components=data['pca_defender_components'].shape[0])
-        aligner.pca_defender.components_ = data['pca_defender_components']
-        aligner.pca_defender.mean_ = data['pca_defender_mean']
-        aligner.procrustes_R = data['procrustes_R']
-        return aligner
 
 
 # ==========================================
@@ -703,59 +613,19 @@ def anchor_repulsion_loss(h_defender_proj: torch.Tensor, h_anchor: torch.Tensor)
 
 
 # ==========================================
-# COLLECT EMBEDDINGS FOR PCA/PROCRUSTES
-# ==========================================
-def collect_alignment_embeddings(
-    anchor_model, anchor_tokenizer,
-    defender_model, defender_tokenizer,
-    config: ConfigV2, device: str = "cuda"
-) -> Tuple[np.ndarray, np.ndarray, int, int]:
-    """Collect embeddings from both models for alignment fitting"""
-
-    anchor_layer = get_target_layer(anchor_model, config.target_layer_pct)
-    defender_layer = get_target_layer(defender_model, config.target_layer_pct)
-
-    anchor_embeddings = []
-    defender_embeddings = []
-
-    prompts = load_benign_prompts(n_samples=config.n_benign_samples)
-
-    print(f"Collecting embeddings for alignment ({len(prompts)} prompts)...")
-    for prompt in tqdm(prompts):
-        anchor_text = smart_format(prompt, config.anchor_type, anchor_tokenizer)
-        defender_text = smart_format(prompt, config.defender_type, defender_tokenizer)
-
-        anchor_enc = anchor_tokenizer(anchor_text, return_tensors="pt", truncation=True, max_length=128).to(device)
-        defender_enc = defender_tokenizer(defender_text, return_tensors="pt", truncation=True, max_length=128).to(device)
-
-        h_anchor = extract_hidden_states(anchor_model, anchor_enc, anchor_layer)
-        h_defender = extract_hidden_states(defender_model, defender_enc, defender_layer)
-
-        anchor_embeddings.append(h_anchor.cpu().numpy().squeeze())
-        defender_embeddings.append(h_defender.cpu().numpy().squeeze())
-
-    return np.array(anchor_embeddings), np.array(defender_embeddings), anchor_layer, defender_layer
-
-
-# ==========================================
-# STAGE 1: ALIGNMENT TRAINING (ALL METHODS)
+# STAGE 1: LAYER SELECTION
 # ==========================================
 def train_alignment_stage1(
     anchor_model, anchor_tokenizer,
     defender_model, defender_tokenizer,
     config: ConfigV2, device: str = "cuda"
-) -> Tuple[Union[ProjectionLayer, PCAProcustesAligner, None], int, int]:
-    """
-    Stage 1: Train/fit alignment based on method
-
-    Returns:
-        alignment: ProjectionLayer, PCAProcustesAligner, or None (for CKA)
-        anchor_layer: int
-        defender_layer: int
-    """
+) -> Tuple[int, int]:
+    """Stage 1: pick the target layer index for both models. CKA repulsion is
+    dimension-agnostic, so no pre-training is needed; this just resolves the
+    layer percentile (config.target_layer_pct) into concrete layer indices."""
 
     print("\n" + "=" * 60)
-    print(f"STAGE 1: Alignment ({config.alignment_method.value})")
+    print("STAGE 1: Layer selection (CKA repulsion is dimension-agnostic, no pre-training needed)")
     print("=" * 60)
 
     anchor_dim = get_hidden_dim(anchor_model)
@@ -765,85 +635,7 @@ def train_alignment_stage1(
 
     print(f"Anchor: {config.anchor_id} (dim={anchor_dim}, layer={anchor_layer})")
     print(f"Defender: {config.defender_id} (dim={defender_dim}, layer={defender_layer})")
-
-    if config.alignment_method == AlignmentMethod.PROJECTION:
-        # Train projection layer
-        projection = ProjectionLayer(anchor_dim, defender_dim, config.projection_type).to(device)
-        optimizer = torch.optim.AdamW(projection.parameters(), lr=config.stage1_lr)
-
-        projection.train()
-        anchor_model.eval()
-        defender_model.eval()
-
-        prompts = load_benign_prompts(n_samples=200) * 3
-
-        pbar = tqdm(range(config.stage1_steps), desc="Stage 1: Projection")
-
-        for step in range(config.stage1_steps):
-            batch = random.sample(prompts, config.stage1_batch_size)
-
-            anchor_texts = [smart_format(p, config.anchor_type, anchor_tokenizer) for p in batch]
-            defender_texts = [smart_format(p, config.defender_type, defender_tokenizer) for p in batch]
-
-            anchor_enc = anchor_tokenizer(anchor_texts, return_tensors="pt", padding=True, truncation=True, max_length=128).to(device)
-            defender_enc = defender_tokenizer(defender_texts, return_tensors="pt", padding=True, truncation=True, max_length=128).to(device)
-
-            with torch.no_grad():
-                h_anchor = extract_hidden_states(anchor_model, anchor_enc, anchor_layer)
-                h_defender = extract_hidden_states(defender_model, defender_enc, defender_layer)
-
-            h_anchor_proj = projection(h_anchor)
-
-            loss_mse = F.mse_loss(h_anchor_proj, h_defender)
-            loss_cos = 1.0 - F.cosine_similarity(
-                F.normalize(h_anchor_proj, dim=-1),
-                F.normalize(h_defender, dim=-1), dim=-1
-            ).mean()
-
-            loss = loss_mse + loss_cos
-
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            pbar.update(1)
-            pbar.set_postfix({"MSE": f"{loss_mse.item():.4f}", "Cos": f"{loss_cos.item():.4f}"})
-
-        pbar.close()
-        print(f"[+] Projection training complete")
-        return projection, anchor_layer, defender_layer
-
-    elif config.alignment_method in [AlignmentMethod.PCA, AlignmentMethod.PROCRUSTES]:
-        # Collect embeddings and fit PCA + Procrustes
-        anchor_emb, defender_emb, anchor_layer, defender_layer = collect_alignment_embeddings(
-            anchor_model, anchor_tokenizer,
-            defender_model, defender_tokenizer,
-            config, device
-        )
-
-        aligner = PCAProcustesAligner(shared_dim=config.shared_dim)
-        aligner.fit(anchor_emb, defender_emb)
-
-        # Evaluate alignment quality
-        anchor_aligned = aligner.transform_anchor(anchor_emb)
-        defender_aligned = aligner.transform_defender(defender_emb)
-
-        mse = np.mean((anchor_aligned - defender_aligned) ** 2)
-        cos_sim = np.mean([
-            np.dot(a, d) / (np.linalg.norm(a) * np.linalg.norm(d) + 1e-8)
-            for a, d in zip(anchor_aligned, defender_aligned)
-        ])
-
-        print(f"Alignment quality: MSE={mse:.6f}, Cos={cos_sim:.4f}")
-        return aligner, anchor_layer, defender_layer
-
-    elif config.alignment_method == AlignmentMethod.CKA:
-        # CKA doesn't need pre-training, just return layers
-        print("[+] CKA: No pre-training needed (dimension-agnostic)")
-        return None, anchor_layer, defender_layer
-
-    else:
-        raise ValueError(f"Unknown alignment method: {config.alignment_method}")
+    return anchor_layer, defender_layer
 
 
 # ==========================================
@@ -928,7 +720,6 @@ def _compute_cka(K1, K2, debiased=False):
 def train_defense_stage2_v2(
     anchor_model, anchor_tokenizer,
     defender_model, defender_tokenizer,
-    alignment: Union[ProjectionLayer, PCAProcustesAligner, None],
     anchor_layer: int, defender_layer: int,
     config: ConfigV2, device: str = "cuda",
     borderline_prompts: Optional[List[str]] = None,
@@ -936,19 +727,14 @@ def train_defense_stage2_v2(
     anchor_layers: Optional[List[int]] = None,
     defender_layers: Optional[List[int]] = None,
 ) -> str:
-    """
-    Stage 2 V2: Defense training with refusal direction approach.
+    """Stage 2: Defense training via CKA repulsion against the anchor.
 
-    Supports all alignment methods:
-    - PROJECTION: Use neural projection layer
-    - PCA/PROCRUSTES: Use PCA + Procrustes transformation
-    - CKA: Use kernel-based similarity (dimension-agnostic)
-
-    Loss = α * L_refusal + β * L_coherency + γ * L_anchor_repulsion + δ * L_lm
+    Loss = alpha * L_refusal + beta * L_coherency + gamma * L_anchor_repulsion
+           + delta * L_lm + epsilon * L_kl
     """
 
     print("\n" + "=" * 60)
-    print(f"STAGE 2 V2: Defense Training ({config.alignment_method.value})")
+    print("STAGE 2 V2: Defense Training (CKA repulsion)")
     print("=" * 60)
     print(f"Alpha (refusal dir): {config.alpha}")
     print(f"Beta (coherency): {config.beta}")
@@ -965,12 +751,6 @@ def train_defense_stage2_v2(
         print(f"GCG training: ON ({config.n_gcg_samples} samples)")
     print(f"Precision: {config.precision}")
     print("=" * 60)
-
-    # Freeze alignment if applicable
-    if isinstance(alignment, ProjectionLayer):
-        alignment.eval()
-        for p in alignment.parameters():
-            p.requires_grad = False
 
     # Prepare defender for LoRA
     if config.precision != "4bit":
@@ -1073,11 +853,6 @@ def train_defense_stage2_v2(
     defender_model.train()
     if anchor_model is not None:
         anchor_model.eval()
-
-    # Pre-compute PCA tensors on GPU (avoids per-step numpy->torch conversion)
-    if config.alignment_method in [AlignmentMethod.PCA, AlignmentMethod.PROCRUSTES]:
-        _pca_mean = torch.tensor(alignment.pca_defender.mean_, device=device, dtype=torch.float32)
-        _pca_components = torch.tensor(alignment.pca_defender.components_, device=device, dtype=torch.float32)
 
     metrics = {'total': [], 'refusal': [], 'coherency': [], 'anchor': [], 'lm': [], 'kl': [], 'sep': [], 'l2_retain': []}
 
@@ -1215,29 +990,28 @@ def train_defense_stage2_v2(
                 _coh_layer_w = config.coherency_layer_weights[li] if config.coherency_layer_weights else 1.0
                 loss_coherency_total = loss_coherency_total + _coh_layer_w * coherency_weight * loss_coh / _n_layers
 
-                # 3. CKA accumulation - per layer
-                if config.alignment_method == AlignmentMethod.CKA:
-                    # Borderline prompts are NEVER included in CKA repulsion —
-                    # they only get KL preservation to maintain baseline behavior
-                    should_accumulate = not is_borderline and (
-                        config.cka_scope == "all" or
-                        (config.cka_scope == "harmful_only" and (is_harmful or is_gcg)) or
-                        (config.cka_scope == "benign_only" and not is_harmful and not is_gcg) or
-                        (config.cka_scope == "gcg_only" and is_gcg) or
-                        (config.cka_scope == "harmful_and_gcg" and (is_harmful or is_gcg)) or
-                        (config.cka_scope == "benign_and_gcg" and (not is_harmful or is_gcg))
-                    )
-                    if should_accumulate:
-                        cka_defender_hiddens[dl].append(h_defender.squeeze(0))
-                        cka_anchor_hiddens[al].append(h_anchor.squeeze(0))
+                # 3. CKA accumulation - per layer.
+                # Borderline prompts are NEVER included in CKA repulsion —
+                # they only get KL preservation to maintain baseline behavior.
+                should_accumulate = not is_borderline and (
+                    config.cka_scope == "all" or
+                    (config.cka_scope == "harmful_only" and (is_harmful or is_gcg)) or
+                    (config.cka_scope == "benign_only" and not is_harmful and not is_gcg) or
+                    (config.cka_scope == "gcg_only" and is_gcg) or
+                    (config.cka_scope == "harmful_and_gcg" and (is_harmful or is_gcg)) or
+                    (config.cka_scope == "benign_and_gcg" and (not is_harmful or is_gcg))
+                )
+                if should_accumulate:
+                    cka_defender_hiddens[dl].append(h_defender.squeeze(0))
+                    cka_anchor_hiddens[al].append(h_anchor.squeeze(0))
 
-                    # Accumulate benign hiddens for CKA preservation
-                    if not is_harmful and not is_gcg and not is_borderline:
-                        if dl not in cka_benign_defender_hiddens:
-                            cka_benign_defender_hiddens[dl] = []
-                            cka_benign_anchor_hiddens[al] = []
-                        cka_benign_defender_hiddens[dl].append(h_defender.squeeze(0))
-                        cka_benign_anchor_hiddens[al].append(h_anchor.squeeze(0))
+                # Accumulate benign hiddens for CKA preservation
+                if not is_harmful and not is_gcg and not is_borderline:
+                    if dl not in cka_benign_defender_hiddens:
+                        cka_benign_defender_hiddens[dl] = []
+                        cka_benign_anchor_hiddens[al] = []
+                    cka_benign_defender_hiddens[dl].append(h_defender.squeeze(0))
+                    cka_benign_anchor_hiddens[al].append(h_anchor.squeeze(0))
 
             # Use primary layer for separation loss
             h_defender_primary = defender_out.hidden_states[_d_layers[0] + 1][:, -1, :].float()
@@ -1252,31 +1026,11 @@ def train_defense_stage2_v2(
                 )
                 loss_kl_total = loss_kl_total + loss_kl
 
-            # 3. Anchor repulsion - push away from anchor (method-specific)
-            # For non-CKA methods, use primary layer only
-            h_anchor_primary = _anc_cache_entry[_a_layers[0]].to(device) if (_multi_layer and anchor_cache) else (_anc_cache_entry.to(device) if anchor_cache else anchor_out.hidden_states[_a_layers[0] + 1][:, -1, :].float())
+            # 3. Anchor repulsion via CKA: hiddens already accumulated in the
+            # per-layer loop above; the actual CKA loss is computed once after
+            # the batch loop, so the per-step contribution here is zero.
             h_defender = h_defender_primary
-
-            if config.alignment_method == AlignmentMethod.PROJECTION:
-                # Project anchor to defender space
-                h_anchor_proj = alignment(h_anchor)
-                loss_anc = anchor_repulsion_loss(h_defender, h_anchor_proj)
-
-            elif config.alignment_method in [AlignmentMethod.PCA, AlignmentMethod.PROCRUSTES]:
-                # Transform anchor to shared PCA space (no gradients needed)
-                h_anchor_np = h_anchor.detach().cpu().numpy()
-                h_anchor_aligned = alignment.transform_anchor(h_anchor_np)
-                h_anchor_t = torch.tensor(h_anchor_aligned, device=device, dtype=torch.float32)
-
-                # Defender PCA as differentiable torch ops (uses pre-computed tensors)
-                h_defender_aligned = (h_defender - _pca_mean) @ _pca_components.T
-
-                loss_anc = anchor_repulsion_loss(h_defender_aligned, h_anchor_t)
-
-            elif config.alignment_method == AlignmentMethod.CKA:
-                # CKA hiddens already accumulated in the per-layer loop above
-                loss_anc = torch.tensor(0.0, device=device)  # computed after batch loop
-
+            loss_anc = torch.tensor(0.0, device=device)
             loss_anchor_total = loss_anchor_total + loss_anc
 
             # Collect for separation loss
@@ -1314,55 +1068,53 @@ def train_defense_stage2_v2(
         loss_benign_cka = torch.tensor(0.0, device=device)
 
         # Compute batch-level CKA anchor repulsion
-        if config.alignment_method == AlignmentMethod.CKA:
-            if config.cka_multi_mode == "concat" and _multi_layer:
-                # CONCAT MODE: concatenate hidden states from all layers → single CKA
-                cat_def_parts = []
-                cat_anc_parts = []
-                for al, dl in zip(_a_layers, _d_layers):
-                    if len(cka_defender_hiddens[dl]) < 2:
-                        continue
-                    cat_def_parts.append(torch.stack(cka_defender_hiddens[dl]))  # [N, d_l]
-                    cat_anc_parts.append(torch.stack(cka_anchor_hiddens[al]))
-                if cat_def_parts:
-                    X_def = torch.cat(cat_def_parts, dim=1)  # [N, sum(d_l)]
-                    X_anc = torch.cat(cat_anc_parts, dim=1)  # [N, sum(d_l')]
-                    K_def = X_def @ X_def.T
-                    K_anc = X_anc @ X_anc.T
-                    loss_anchor_total = _compute_cka(K_def, K_anc, debiased=config.debiased_cka)
-            else:
-                # FULL-GRAM CKA MODE (per-layer, then weighted average)
-                # Matches paper: stack all harmful hiddens → NxN Gram → single CKA
-                cka_layer_losses = []
-                _weights = config.layer_weights if config.layer_weights else [1.0] * _n_layers
-                for li, (al, dl) in enumerate(zip(_a_layers, _d_layers)):
-                    if len(cka_defender_hiddens[dl]) < 2:
-                        continue
-                    X_def = torch.stack(cka_defender_hiddens[dl])  # [N, d]
-                    X_anc = torch.stack(cka_anchor_hiddens[al])    # [N, d]
-                    K_def = X_def @ X_def.T  # [N, N]
-                    K_anc = X_anc @ X_anc.T
-                    cka_val = _compute_cka(K_def, K_anc, debiased=config.debiased_cka)
-                    cka_layer_losses.append(_weights[li] * cka_val)
+        if config.cka_multi_mode == "concat" and _multi_layer:
+            # CONCAT MODE: concatenate hidden states from all layers → single CKA
+            cat_def_parts = []
+            cat_anc_parts = []
+            for al, dl in zip(_a_layers, _d_layers):
+                if len(cka_defender_hiddens[dl]) < 2:
+                    continue
+                cat_def_parts.append(torch.stack(cka_defender_hiddens[dl]))  # [N, d_l]
+                cat_anc_parts.append(torch.stack(cka_anchor_hiddens[al]))
+            if cat_def_parts:
+                X_def = torch.cat(cat_def_parts, dim=1)  # [N, sum(d_l)]
+                X_anc = torch.cat(cat_anc_parts, dim=1)  # [N, sum(d_l')]
+                K_def = X_def @ X_def.T
+                K_anc = X_anc @ X_anc.T
+                loss_anchor_total = _compute_cka(K_def, K_anc, debiased=config.debiased_cka)
+        else:
+            # FULL-GRAM CKA MODE (per-layer, then weighted average)
+            # Matches paper: stack all harmful hiddens → NxN Gram → single CKA
+            cka_layer_losses = []
+            _weights = config.layer_weights if config.layer_weights else [1.0] * _n_layers
+            for li, (al, dl) in enumerate(zip(_a_layers, _d_layers)):
+                if len(cka_defender_hiddens[dl]) < 2:
+                    continue
+                X_def = torch.stack(cka_defender_hiddens[dl])  # [N, d]
+                X_anc = torch.stack(cka_anchor_hiddens[al])    # [N, d]
+                K_def = X_def @ X_def.T  # [N, N]
+                K_anc = X_anc @ X_anc.T
+                cka_val = _compute_cka(K_def, K_anc, debiased=config.debiased_cka)
+                cka_layer_losses.append(_weights[li] * cka_val)
 
-                if cka_layer_losses:
-                    total_weight = sum(_weights[:len(cka_layer_losses)])
-                    loss_anchor_total = sum(cka_layer_losses) / total_weight
+            if cka_layer_losses:
+                total_weight = sum(_weights[:len(cka_layer_losses)])
+                loss_anchor_total = sum(cka_layer_losses) / total_weight
 
-            # Benign CKA preservation: maximize CKA on benign prompts
-            if config.alignment_method == AlignmentMethod.CKA:
-                for dl in _d_layers:
-                    al = _a_layers[_d_layers.index(dl)] if dl in _d_layers else dl
-                    if dl in cka_benign_defender_hiddens and len(cka_benign_defender_hiddens[dl]) >= 2:
-                        X_def_b = torch.stack(cka_benign_defender_hiddens[dl])
-                        X_anc_b = torch.stack(cka_benign_anchor_hiddens[al])
-                        K_def_b = X_def_b @ X_def_b.T
-                        K_anc_b = X_anc_b @ X_anc_b.T
-                        n_b_cka = K_def_b.shape[0]
-                        benign_cka = _compute_cka(K_def_b, K_anc_b, debiased=config.debiased_cka)
-                        # Negative: maximize benign CKA (push toward 1)
-                        loss_benign_cka = -benign_cka / n_b_cka
-                        break  # Single layer
+        # Benign CKA preservation: maximize CKA on benign prompts
+        for dl in _d_layers:
+            al = _a_layers[_d_layers.index(dl)] if dl in _d_layers else dl
+            if dl in cka_benign_defender_hiddens and len(cka_benign_defender_hiddens[dl]) >= 2:
+                X_def_b = torch.stack(cka_benign_defender_hiddens[dl])
+                X_anc_b = torch.stack(cka_benign_anchor_hiddens[al])
+                K_def_b = X_def_b @ X_def_b.T
+                K_anc_b = X_anc_b @ X_anc_b.T
+                n_b_cka = K_def_b.shape[0]
+                benign_cka = _compute_cka(K_def_b, K_anc_b, debiased=config.debiased_cka)
+                # Negative: maximize benign CKA (push toward 1)
+                loss_benign_cka = -benign_cka / n_b_cka
+                break  # Single layer
 
         # Compute separation loss: maintain distance between harmful/benign clusters
         loss_sep_total = torch.tensor(0.0, device=device)
@@ -1382,9 +1134,7 @@ def train_defense_stage2_v2(
 
         loss_refusal_total = loss_refusal_total / max(n_harmful, 1)
         loss_coherency_total = loss_coherency_total / n
-        # CKA: no normalization (paper uses raw CKA directly); other methods: /n
-        if config.alignment_method != AlignmentMethod.CKA:
-            loss_anchor_total = loss_anchor_total / n
+        # CKA loss is the raw paper-form CKA (no /n normalization).
         loss_lm_total = loss_lm_total / max(n_harmful, 1) if config.use_lm_loss else torch.tensor(0.0)
         loss_kl_total = loss_kl_total / max(n_benign, 1)
         loss_reroute_total = loss_reroute_total / max(n_harmful, 1)
@@ -1525,7 +1275,7 @@ def train_defense_stage2_v2(
 
     # Save adapter
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    adapter_name = f"defender_v2_{config.alignment_method.value}_{timestamp}"
+    adapter_name = f"defender_v2_cka_{timestamp}"
     adapter_path = os.path.join(config.output_dir, adapter_name)
     os.makedirs(config.output_dir, exist_ok=True)
     defender_model.save_pretrained(adapter_path)
@@ -1576,11 +1326,6 @@ def main():
                         help="Anchor model (llama2, llama3, vicuna, mistral, zephyr)")
     parser.add_argument("--defender", type=str, default="vicuna",
                         help="Defender model")
-    parser.add_argument("--alignment", type=str, default="projection",
-                        choices=["projection", "cka", "pca", "procrustes"])
-    parser.add_argument("--projection_type", type=str, default="mlp",
-                        choices=["linear", "mlp"])
-
     # V2 loss weights - balanced to avoid over-refusal
     parser.add_argument("--alpha", type=float, default=0.3, help="Refusal direction weight (lower=less refusal)")
     parser.add_argument("--beta", type=float, default=0.1, help="Coherency weight (higher=preserve benign)")
@@ -1614,7 +1359,6 @@ def main():
                         choices=["wildguard", "xstest", "orbench", "falsereject"],
                         help="Source of borderline prompts: wildguard (default), xstest, orbench, falsereject")
 
-    parser.add_argument("--stage1_steps", type=int, default=500)
     parser.add_argument("--stage2_steps", type=int, default=500)
     parser.add_argument("--stage2_lr", type=float, default=5e-5)
     parser.add_argument("--stage2_batch_size", type=int, default=4)
@@ -1705,8 +1449,6 @@ def main():
         defender_id=defender_id,
         anchor_type=args.anchor.lower(),
         defender_type=args.defender.lower(),
-        alignment_method=AlignmentMethod(args.alignment),
-        projection_type=args.projection_type,
         alpha=args.alpha,
         beta=args.beta,
         gamma=args.gamma,
@@ -1722,7 +1464,6 @@ def main():
         cka_scope=cka_scope,
         use_gcg_training=args.use_gcg_training,
         n_gcg_samples=args.n_gcg_samples,
-        stage1_steps=args.stage1_steps,
         stage2_steps=args.stage2_steps,
         stage2_lr=args.stage2_lr,
         stage2_batch_size=args.stage2_batch_size,
@@ -1762,7 +1503,7 @@ def main():
     print("=" * 70)
     print(f"Anchor: {config.anchor_id} (type: {config.anchor_type})")
     print(f"Defender: {config.defender_id} (type: {config.defender_type})")
-    print(f"Alignment: {config.alignment_method.value}")
+    print("Alignment: cka (anchor representation repulsion)")
     print("=" * 70)
 
     # Preload borderline prompts once (for train/test split reproducibility)
@@ -1783,7 +1524,6 @@ def main():
         anchor_cache_data = torch.load(args.load_anchor_cache, map_location="cpu")
         anchor_cache = anchor_cache_data["cache"]
         cached_anchor_layers = anchor_cache_data["anchor_layers"]
-        alignment = None
         anchor_tokenizer = load_tokenizer(config.anchor_id, config.anchor_type)
         if same_model:
             defender_tokenizer = anchor_tokenizer
@@ -1828,47 +1568,29 @@ def main():
         sync_model_tokenizer(anchor_model, anchor_tokenizer)
         anchor_model.eval()
 
-        if config.alignment_method == AlignmentMethod.CKA:
-            # CKA is dimension-agnostic: no pre-training needed, no defender load.
-            n_anc_layers = get_num_layers(anchor_model)
+        # CKA is dimension-agnostic: no pre-training needed, no defender load
+        # required at this stage. Just resolve the layer-percentile choice
+        # against each model's depth.
+        n_anc_layers = get_num_layers(anchor_model)
 
-            if same_model:
-                print("\n[*] Self-defense + CKA: Skipping Stage 1 (trivial alignment)")
-                defender_tokenizer = anchor_tokenizer
-                anchor_layers = [int(p * n_anc_layers) for p in layer_pcts]
-                defender_layers = anchor_layers
-            else:
-                print("\n[*] CKA: Skipping Stage 1 (dimension-agnostic)")
-                defender_tokenizer = load_tokenizer(config.defender_id, config.defender_type)
-                from transformers import AutoConfig
-                def_config = AutoConfig.from_pretrained(config.defender_id, trust_remote_code=True)
-                n_def_layers = getattr(def_config, 'num_hidden_layers', 32)
-                anchor_layers = [int(p * n_anc_layers) for p in layer_pcts]
-                defender_layers = [int(p * n_def_layers) for p in layer_pcts]
-
-            # Backward compat: single-layer variables
-            anchor_layer = anchor_layers[0]
-            defender_layer = defender_layers[0]
-            print(f"    anchor_layers={anchor_layers}, defender_layers={defender_layers}")
-            alignment = None
+        if same_model:
+            print("\n[*] Self-defense + CKA: Skipping Stage 1 (trivial alignment)")
+            defender_tokenizer = anchor_tokenizer
+            anchor_layers = [int(p * n_anc_layers) for p in layer_pcts]
+            defender_layers = anchor_layers
         else:
-            print("\n[*] Loading defender model...")
+            print("\n[*] CKA: Skipping Stage 1 (dimension-agnostic)")
             defender_tokenizer = load_tokenizer(config.defender_id, config.defender_type)
+            from transformers import AutoConfig
+            def_config = AutoConfig.from_pretrained(config.defender_id, trust_remote_code=True)
+            n_def_layers = getattr(def_config, 'num_hidden_layers', 32)
+            anchor_layers = [int(p * n_anc_layers) for p in layer_pcts]
+            defender_layers = [int(p * n_def_layers) for p in layer_pcts]
 
-            defender_model = AutoModelForCausalLM.from_pretrained(
-                config.defender_id, **get_load_kwargs(config.precision)
-            )
-
-            # Stage 1: Train/fit alignment (supports all methods)
-            alignment, anchor_layer, defender_layer = train_alignment_stage1(
-                anchor_model, anchor_tokenizer,
-                defender_model, defender_tokenizer,
-                config, device
-            )
-
-            # Need to reload defender for fresh LoRA
-            del defender_model
-            cleanup()
+        # Backward compat: single-layer variables
+        anchor_layer = anchor_layers[0]
+        defender_layer = defender_layers[0]
+        print(f"    anchor_layers={anchor_layers}, defender_layers={defender_layers}")
 
         # Pre-compute anchor hidden states for all training prompts.
         # This allows freeing the anchor model before loading the defender,
@@ -1927,7 +1649,7 @@ def main():
     adapter_path = train_defense_stage2_v2(
         None, anchor_tokenizer,
         defender_model, defender_tokenizer,
-        alignment, anchor_layer, defender_layer,
+        anchor_layer, defender_layer,
         config, device,
         borderline_prompts=borderline_prompts,
         anchor_cache=anchor_cache,
@@ -1947,17 +1669,7 @@ def main():
     print("=" * 70)
     print(f"Adapter saved to: {adapter_path}")
 
-    # Save alignment
-    if isinstance(alignment, ProjectionLayer):
-        alignment_path = os.path.join(adapter_path, "projection.pt")
-        torch.save(alignment.state_dict(), alignment_path)
-        print(f"Projection saved to: {alignment_path}")
-    elif isinstance(alignment, PCAProcustesAligner):
-        alignment_path = os.path.join(adapter_path, "pca_procrustes.npz")
-        alignment.save(alignment_path)
-        print(f"PCA-Procrustes alignment saved to: {alignment_path}")
-    elif alignment is None:
-        print("CKA alignment: No alignment to save (dimension-agnostic)")
+    # CKA repulsion is dimension-agnostic; nothing extra to save besides the LoRA adapter.
 
     # Print evaluation command
     print("\n" + "=" * 70)

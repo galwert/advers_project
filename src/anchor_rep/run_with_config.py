@@ -41,8 +41,8 @@ def yaml_to_argv(cfg: dict) -> list[str]:
             argv += [f"--{k}", str(losses[k])]
 
     training = cfg.get("training", {})
-    # Always run AnchorRep with CKA alignment; YAML may override.
-    argv += ["--alignment", str(training.get("alignment", "cka"))]
+    # AnchorRep only runs with CKA repulsion; the legacy `alignment:` field in
+    # the YAML is ignored if present (kept readable for older configs).
     if "cka_scope" in training:
         argv += ["--cka_scope", str(training["cka_scope"])]
     if "target_layer_pct" in training:
