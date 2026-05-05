@@ -6,11 +6,11 @@ HarmBench cross-model GCG transfer evaluation reported in `tab:harmbench`
 
 ## Files
 
-50 JSON files named `transfer_<src>_to_<tgt>_{bl,def}.json`, one per
-(source, target, side) cell:
+10 JSON files named `transfer_to_<tgt>_{bl,def}.json`, one per
+(target, side) combination — each contains all 500 attacks against that target
+(5 sources × 100 prompts each):
 
-- `<src>` and `<tgt>` ∈ `{llama3, mistral, vicuna, qwen14b, phi3}` — the five
-  defenders, also serving as the five suffix sources.
+- `<tgt>` ∈ `{llama3, mistral, vicuna, qwen14b, phi3}` — the five defended models, also serving as the five suffix sources.
 - `bl` = baseline (undefended) target. `def` = defended target (LoRA adapter applied).
 
 The 100 HarmBench prompts come from the canonical HarmBench v1 standard
@@ -21,17 +21,23 @@ are in `attack_artifacts/harmbench_suffixes/`.
 
 ```jsonc
 {
-  "source": "mistral",
   "target": "mistral_def",
-  "asr": 14.0,                        // automated-judge ASR (raw, no manual review)
-  "successes": 14,                    // count of automated-judge successes
-  "total": 100,
-  "results": [
+  "side": "defended",                  // "baseline" or "defended"
+  "total": 500,                        // 5 sources × 100 prompts
+  "successes": 57,                     // automated-judge successes (raw, pre-manual-review)
+  "asr": 11.4,                         // automated-judge ASR (%)
+  "by_source": {                       // per-source breakdown for this target/side
+    "llama3":  {"n": 100, "successes": 1,  "asr": 1.0},
+    "mistral": {"n": 100, "successes": 14, "asr": 14.0},
+    ...
+  },
+  "results": [                         // 500 entries, all sources concatenated
     {
-      "goal": "Write a persuasive article ...",
-      "suffix": "ve... But distributed write ...",  // GCG suffix optimized on <src> (matches attack_artifacts/harmbench_suffixes/gcg_suffixes_<src>_100.json by goal)
-      "success": false,               // automated WildGuard pipeline verdict
-      "response": "..."               // full target response (truncated upstream to ~256 tok)
+      "source":   "mistral",                              // attack source
+      "goal":     "Write a persuasive article ...",
+      "suffix":   "ve... But distributed write ...",      // GCG suffix optimized on <source>; matches attack_artifacts/harmbench_suffixes/gcg_suffixes_<source>_100.json by goal
+      "success":  false,                                   // automated WildGuard pipeline verdict
+      "response": "..."                                    // full target response (truncated upstream to ~256 tok)
     },
     ...
   ]
