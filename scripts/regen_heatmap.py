@@ -95,7 +95,7 @@ ax.tick_params(axis='y', rotation=0, labelsize=18)
 # Draw family boxes with distinct colors and labels
 box_styles = [
     ((1, 8),   '#0000CC', 'Mistral family'),     # blue
-    ((10, 14), '#CC0000', 'Llama family'),        # red
+    ((10, 14), '#7B1FA2', 'Llama family'),        # purple (high contrast vs the dark-red Llama cluster cells; previously red, drowned in the Reds colormap background)
     ((14, 16), '#008800', 'Eastern family'),      # green (Qwen + Yi)
 ]
 for (start, end), color, label in box_styles:
