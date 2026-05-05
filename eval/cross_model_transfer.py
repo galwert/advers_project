@@ -5,7 +5,7 @@ Usage:
     python eval/cross_model_transfer.py \
         --base-model meta-llama/Meta-Llama-3-8B-Instruct \
         --adapter <hf-handle>/AnchorRep-Llama-3-8B-Instruct \
-        --suffixes-csv attack_artifacts/advbench_suffixes_all_models.csv \
+        --suffixes attack_artifacts/advbench_suffixes_all_models.json \
         --output-dir logs/cross_model_transfer/llama3
 """
 import argparse
@@ -109,8 +109,9 @@ def parse_args():
                    help="Hugging Face base model id (e.g., meta-llama/Meta-Llama-3-8B-Instruct).")
     p.add_argument("--adapter", required=True,
                    help="Hugging Face adapter repo id or local path (e.g., anonsubmission12345/AnchorRep-Llama-3-8B-Instruct).")
-    p.add_argument("--suffixes-csv", required=True,
-                   help="Path to GCG suffixes CSV (default: attack_artifacts/advbench_suffixes_all_models.csv).")
+    p.add_argument("--suffixes", "--suffixes-csv", dest="suffixes", required=True,
+                   help="Path to GCG suffixes JSON (default: attack_artifacts/advbench_suffixes_all_models.json). "
+                        "Legacy --suffixes-csv flag is accepted for backward compatibility.")
     p.add_argument("--output-dir", required=True,
                    help="Where to write results (e.g., logs/cross_model_transfer/llama3).")
     p.add_argument("--n-samples", type=int, default=2000,
@@ -134,7 +135,10 @@ def main():
     print("=" * 60)
 
     print("\n[1/4] Loading test data...")
-    df = pd.read_csv(args.suffixes_csv)
+    if str(args.suffixes).endswith(".csv"):
+        df = pd.read_csv(args.suffixes)
+    else:
+        df = pd.read_json(args.suffixes, orient='records')
     print(f"      Loaded {len(df)} adversarial examples")
 
     if len(df) > args.n_samples:

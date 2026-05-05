@@ -79,10 +79,10 @@ def simname(m): return SIM_NAME.get(m, m)
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _CKA_DIR = _REPO_ROOT / 'data' / 'cross_layer_cka'
 mats = {}
-for p in sorted(_CKA_DIR.glob('cka_harm_*_vs_*.csv')):
+for p in sorted(_CKA_DIR.glob('cka_harm_*_vs_*.json')):
     parts = p.stem.replace('cka_harm_','').split('_vs_')
     if len(parts) == 2:
-        mats[(parts[0], parts[1])] = pd.read_csv(p, index_col=0).values
+        mats[(parts[0], parts[1])] = pd.read_json(p, orient='split').values
 
 def cka_diag_mean(s, t):
     s2, t2 = simname(s), simname(t)

@@ -72,7 +72,7 @@ LoRA target modules are the standard set for the supported architectures (q, k, 
 | Key | Type | Description |
 |---|---|---|
 | `harmful_prompts_file` | string (path) | JSON file with harmful training prompts. Default: `data/advbench_train_split.json` (30 AdvBench prompts, seed 42). |
-| `gcg_data_path` | string (path) | GCG suffixes CSV. Default: `attack_artifacts/advbench_suffixes_all_models.csv`. |
+| `gcg_data_path` | string (path) | GCG suffixes CSV. Default: `attack_artifacts/advbench_suffixes_all_models.json`. |
 
 ## Overriding from the command line
 

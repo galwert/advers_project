@@ -26,7 +26,7 @@ bash scripts/eval_only.sh mistral
 What this does:
 1. Downloads `anonsubmission12345/AnchorRep-Mistral-7B-Instruct-v0.2` from HuggingFace.
 2. Loads it as a PEFT adapter on top of `mistralai/Mistral-7B-Instruct-v0.2`.
-3. Generates responses for 2,000 prompt+suffix pairs from `attack_artifacts/advbench_suffixes_all_models.csv`.
+3. Generates responses for 2,000 prompt+suffix pairs from `attack_artifacts/advbench_suffixes_all_models.json`.
 4. Computes refusal rate and ASR.
 5. Writes results to `logs/cross_model_transfer/mistral_repro/{summary.csv, defended_model_results.csv}`.
 

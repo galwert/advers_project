@@ -39,4 +39,4 @@ borderline:
 
 data:
   harmful_prompts_file: data/advbench_train_split.json
-  gcg_data_path: attack_artifacts/advbench_suffixes_all_models.csv
+  gcg_data_path: attack_artifacts/advbench_suffixes_all_models.json

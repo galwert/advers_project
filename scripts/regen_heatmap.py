@@ -15,8 +15,8 @@ import seaborn as sns
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
-rsa_df = pd.read_csv(_REPO_ROOT / 'data' / 'similarity_matrices' / 'rsa_harm_pct50.csv',
-                     index_col=0)
+rsa_df = pd.read_json(_REPO_ROOT / 'data' / 'similarity_matrices' / 'rsa_harm_pct50.json',
+                      orient='split')
 
 # Short display names (Rom: "make the text bigger and give them shortcuts")
 DISPLAY = {

@@ -89,7 +89,7 @@ echo
 python eval/cross_model_transfer.py \
     --base-model "$DEFAULT_BASE" \
     --adapter "$ADAPTER" \
-    --suffixes-csv attack_artifacts/advbench_suffixes_all_models.csv \
+    --suffixes attack_artifacts/advbench_suffixes_all_models.json \
     --output-dir "$OUTPUT_DIR" \
     --defender-label "$DEFENDER_LABEL"
 

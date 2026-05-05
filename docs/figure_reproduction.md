@@ -11,12 +11,12 @@ Both panels read from the precomputed similarity / transfer matrices that ship w
 
 | Path | What it holds |
 |---|---|
-| `data/similarity_matrices/cka_harm_pct50.csv`           | 20×20 pairwise CKA on harmful prompts |
-| `data/similarity_matrices/rsa_harm_pct50.csv`           | 20×20 pairwise RSA on harmful prompts |
-| `data/similarity_matrices/var_explained_pct50.csv`      | 20×20 Variance Explained |
-| `data/similarity_matrices/neighborhood_harm_pct50.csv`  | 20×20 Neighborhood (k-NN Jaccard, harmful prompts) |
-| `data/similarity_matrices/distance_ratio_pct50.csv`     | 20×20 Distance Ratio (within/between cluster) |
-| `data/cross_layer_cka/cka_harm_<X>_vs_<Y>.csv`          | Per-pair full L×L cross-layer CKA matrices (used by the bar) |
+| `data/similarity_matrices/cka_harm_pct50.json`           | 20×20 pairwise CKA on harmful prompts |
+| `data/similarity_matrices/rsa_harm_pct50.json`           | 20×20 pairwise RSA on harmful prompts |
+| `data/similarity_matrices/var_explained_pct50.json`      | 20×20 Variance Explained |
+| `data/similarity_matrices/neighborhood_harm_pct50.json`  | 20×20 Neighborhood (k-NN Jaccard, harmful prompts) |
+| `data/similarity_matrices/distance_ratio_pct50.json`     | 20×20 Distance Ratio (within/between cluster) |
+| `data/cross_layer_cka/cka_harm_<X>_vs_<Y>.json`          | Per-pair full L×L cross-layer CKA matrices (used by the bar) |
 
 The transfer ASR values consumed by the bar are hardcoded inside `scripts/regen_bar.py` from the paper's Table 11 (`tab:asr_matrix`), so the bar does not depend on a re-judged CSV.
 

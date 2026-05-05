@@ -18,9 +18,9 @@ unreleased intermediate scoring artifacts).
 
 ## Files
 
-- `full_benchmark_results.csv` (500 rows) — per-sample predictions from every
-  evaluated system. Columns: `idx`, `source`, `ground_truth`, `prompt_preview`,
-  `response_preview`, then one column per system:
+- `full_benchmark_results.json` (500 records, list-of-records format) — per-sample
+  predictions from every evaluated system. Per-record keys: `idx`, `source`,
+  `ground_truth`, `prompt_preview`, `response_preview`, then one key per system:
     - `heur_v3_pred` — heuristic-only baseline (Stages 0-4 of the pipeline)
     - `llamaguard_pred`, `wildguard_pred`, `harmbench_7b_pred`, `harmbench_13b_pred`
       — standalone neural judges
@@ -36,7 +36,7 @@ unreleased intermediate scoring artifacts).
 
 ```python
 import pandas as pd, json
-df = pd.read_csv("data/judge_benchmark/full_benchmark_results.csv")
+df = pd.read_json("data/judge_benchmark/full_benchmark_results.json", orient="records")
 df["gt_unsafe"] = (df["ground_truth"] == "unsafe").astype(int)
 
 def metrics(pred_col):
