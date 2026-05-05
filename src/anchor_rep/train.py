@@ -817,7 +817,7 @@ def collect_alignment_embeddings(
     anchor_embeddings = []
     defender_embeddings = []
 
-    prompts = load_benign_prompts(n_samples=100)
+    prompts = load_benign_prompts(n_samples=config.n_benign_samples)
 
     print(f"Collecting embeddings for alignment ({len(prompts)} prompts)...")
     for prompt in tqdm(prompts):
