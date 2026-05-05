@@ -28,7 +28,21 @@ All evaluation logs released alongside the AnchorRep paper. Use these to verify 
 ### `benchmarks/`
 - Per-defender benchmark outputs:
   - `{defender}_bench.json`: MT-Bench, OR-Bench, XSTest scores plus BGR.
-  - `{defender}_falsereject.json`: FalseReject evaluation.
+  - `{defender}_falsereject.json`: FalseReject evaluation, full per-prompt traces.
+    Top-level keys: `model`, `adapter_path`, `n_prompts`, `refusal_keywords`,
+    `summary` (`baseline_refusals`, `baseline_rate`, `defended_refusals`,
+    `defended_rate`, `delta`), `baseline` (list of 500 records), `defended`
+    (list of 500 records). Each record is `{prompt, response, is_refusal}`.
+    Backs the FalseReject column in `tab:comparison` (`tab:falsereject`).
+    Headline numbers from this run:
+
+    | Defender   | Baseline rate | Defended rate | Δ (pp) |
+    |------------|--------------:|--------------:|-------:|
+    | Llama-3    |         37.2% |         15.0% | −22.2  |
+    | Mistral    |         18.0% |          8.0% | −10.0  |
+    | Vicuna     |         22.6% |         35.4% | +12.8  |
+    | Qwen-14B   |         34.6% |         35.6% |  +1.0  |
+    | Phi-3      |         29.6% |         25.2% |  −4.4  |
 
 ## License
 
