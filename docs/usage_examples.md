@@ -246,8 +246,6 @@ cat logs/cross_model_transfer/mistral_repro/summary.csv
 cat logs/cross_model_transfer/mistral_per_source_summary.json | jq
 ```
 
-The full per-prompt audit log for HarmBench transfer is in `logs/audit/transfer_asr_verified.json`.
-
 ---
 
 ## See also

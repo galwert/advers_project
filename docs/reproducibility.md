@@ -86,7 +86,7 @@ python eval/benchmarks.py \
 
 ## 7. Manual verification protocol
 
-The paper applies a manual verification step over automated WildGuard judgments (paper Appendix `app:manual_verification`). The full audit log is in `logs/audit/transfer_asr_verified.json`. Each entry includes the prompt, response, automated verdict, manual verdict, and overturn rationale.
+The paper applies a manual verification step over automated WildGuard judgments (paper Appendix `app:manual_verification`). The verified verdict and overturn rationale for every flagged response is inlined in the released `logs/cross_model_transfer/{method}_{defender}.json` files via the `manual_verification_*` entry fields.
 
 ## Validation suite
 

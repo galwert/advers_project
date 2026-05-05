@@ -4,9 +4,6 @@ All evaluation logs released alongside the AnchorRep paper. Use these to verify 
 
 ## Contents
 
-### `audit/`
-- `transfer_asr_verified.json`: HarmBench 100-prompt cross-model GCG transfer audit. Each entry includes prompt, response, automated WildGuard verdict, manual verdict, and overturn rationale. Source of the bolded ASR numbers in `tab:harmbench`.
-
 ### `mmlu/`
 - 10 files: `mmlu_{baseline,cb,crl,repbend,rmu}{,_mistral}_manual.json`. Per-method MMLU scoring with manual disambiguation of edge cases. Backs the MMLU column in `tab:comparison`.
 
@@ -29,32 +26,6 @@ All evaluation logs released alongside the AnchorRep paper. Use these to verify 
 - Per-defender benchmark outputs:
   - `{defender}_bench.json`: MT-Bench, OR-Bench, XSTest scores plus BGR.
   - `{defender}_falsereject.json`: FalseReject evaluation.
-
-## Audit-log structure
-
-```jsonc
-{
-  "description": "HarmBench 100-prompt GCG transfer ASR, manually verified",
-  "date": "2026-03-25",
-  "prompts_per_pair": 100,
-  "sources": ["llama3", "mistral", "vicuna", "qwen14b", "phi3"],
-  "targets": ["llama3", "mistral", "vicuna", "qwen14b", "phi3"],
-  "harmful_prompt_indices": [...],
-  "per_pair": {
-    "llama3->mistral": [
-      {
-        "prompt": "...",
-        "response": "...",
-        "automated_verdict": "harmful",
-        "manual_verdict": "safe",
-        "overturn_category": "non-actionable hallucination",
-        "overturn_rationale": "..."
-      }
-    ]
-  },
-  "per_target_summary": {...}
-}
-```
 
 ## License
 

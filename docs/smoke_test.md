@@ -115,7 +115,7 @@ Expected behavior:
 
 ## Step 7: Compare against the released log
 
-Compare the reproduced summary against the defender's row in the paper's main results table (`tab:comparison`). The released audit log (`logs/audit/transfer_asr_verified.json`) contains per-prompt manual-verification entries that you can also cross-check against.
+Compare the reproduced summary against the defender's row in the paper's main results table (`tab:comparison`). Per-prompt manual-verification entries are inlined in the released `logs/cross_model_transfer/{method}_{defender}.json` files (each flagged response carries `manual_verification_*` fields).
 
 Loose comparison:
 
