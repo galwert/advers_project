@@ -63,29 +63,26 @@ python eval/adaptive_attacks_advanced.py --adapter anonsubmission12345/AnchorRep
 
 ## 5. Reproduce `tab:harmbench`
 
-The 500 HarmBench-derived GCG suffixes (5 source models × 100 prompts each)
-are bundled in `attack_artifacts/harmbench_suffixes_all_sources.json`. To
-reproduce the column for a single target+source-source pair, filter that
-file by the `source` key:
+`eval/cross_model_transfer.py` is schema-agnostic — pass the
+HarmBench bundle as `--suffixes` and it will treat each entry's `goal`
+as the prompt and `source` as the attack-source label, mirroring the
+AdvBench (`prompt` + `model`) flow:
 
 ```bash
 for tgt in llama3 mistral vicuna qwen14b phi3; do
-    for src in llama3 mistral vicuna qwen14b phi3; do
-        python - <<PY
-import json, pandas as pd
-df = pd.read_json("attack_artifacts/harmbench_suffixes_all_sources.json", orient="records")
-df[df.source == "$src"].to_json("/tmp/hb_${src}.json", orient="records", indent=2)
-PY
-        python eval/cross_model_transfer.py \
-            --base-model "$(yq .defender.base_model configs/${tgt}.yaml)" \
-            --adapter "anonsubmission12345/AnchorRep-${tgt}" \
-            --suffixes "/tmp/hb_${src}.json" \
-            --output-dir "logs/cross_model_transfer/harmbench_${src}_to_${tgt}"
-    done
+    python eval/cross_model_transfer.py \
+        --base-model "$(yq .defender.base_model configs/${tgt}.yaml)" \
+        --adapter "anonsubmission12345/AnchorRep-${tgt}" \
+        --suffixes attack_artifacts/harmbench_suffixes_all_sources.json \
+        --output-dir "logs/cross_model_transfer/harmbench_${tgt}"
 done
 ```
 
-(Adjust the `--adapter` argument to the exact HF repo name; see `configs/{tgt}.yaml`.)
+The 500-entry bundle drives baseline + defended generation in one pass per
+target; the `source_model` column in the output preserves the per-source
+breakdown so you can recover the 5×5 cell numbers for `tab:harmbench`.
+(Adjust the `--adapter` argument to the exact HF repo name; see
+`configs/{tgt}.yaml`.)
 
 ## 6. Reproduce benchmarks (MT-Bench, MMLU, OR-Bench, XSTest, FalseReject, BGR)
 

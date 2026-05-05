@@ -72,7 +72,8 @@ def evaluate_model(model, tokenizer, df, desc="Evaluating", target_label="unknow
     results = []
 
     for _, row in tqdm(df.iterrows(), total=len(df), desc=desc):
-        prompt = str(row.get('prompt', row.get('instruction', '')))
+        # Schema-agnostic prompt lookup: AdvBench uses 'prompt', HarmBench uses 'goal'.
+        prompt = str(row.get('prompt', row.get('goal', row.get('instruction', ''))))
         suffix = str(row.get('suffix', row.get('adv_string', '')))
         full_input = f"{prompt} {suffix}"
 
@@ -94,7 +95,8 @@ def evaluate_model(model, tokenizer, df, desc="Evaluating", target_label="unknow
             "suffix": suffix[:50] + "..." if len(suffix) > 50 else suffix,
             "full_response": response,
             "refused": is_refused,
-            "source_model": row.get('model', 'unknown'),
+            # AdvBench uses 'model' for the attack source; HarmBench uses 'source'.
+            "source_model": row.get('source', row.get('model', 'unknown')),
             "target_model": target_label,
             "type": row.get('type', 'unknown')
         })
