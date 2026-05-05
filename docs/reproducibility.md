@@ -24,7 +24,7 @@ python -m anchor_rep.run_with_config \
     --output-dir runs/mistral
 ```
 
-Output: `runs/mistral/adapter/adapter_model.safetensors` (~320 MB).
+Output: `runs/mistral/defender_v2_cka_<TIMESTAMP>/adapter_model.safetensors` (~320 MB). Each train run lands in a fresh timestamp-suffixed subdirectory under `runs/<config>/`, so multiple runs accumulate side by side; pass `--latest` to `scripts/eval_one.sh` to evaluate the most recent one.
 
 Approximate runtime on a single L40S (48 GB): 15 to 25 minutes per defender.
 

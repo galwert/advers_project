@@ -6,6 +6,10 @@ defender:
   base_model: Qwen/Qwen1.5-14B-Chat
   precision: fp16                              # 14B models use fp16 (fp32 exceeds single-GPU memory)
 
+eval:
+  hf_adapter: anonsubmission12345/AnchorRep-Qwen1.5-14B-Chat
+  defender_label: Qwen1.5-14b
+
 anchor:
   name: llama3
   precision: fp16

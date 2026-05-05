@@ -2,65 +2,87 @@
 # Evaluate one AnchorRep defender on cross-model GCG transfer.
 #
 # Usage:
-#     bash scripts/eval_one.sh <defender> [adapter]
+#     bash scripts/eval_one.sh <defender> [adapter|--latest]
 #
-# Where <defender> is one of: llama3, mistral, vicuna, qwen14b, phi3.
-# [adapter] (optional) is a HuggingFace repo id or local adapter path.
-#           If omitted, the released adapter from the AnchorRep collection is used.
+# <defender>: llama3 | mistral | vicuna | qwen14b | phi3
+#             (must have a matching configs/<defender>.yaml)
+#
+# Adapter resolution (highest precedence first):
+#   1. Explicit 2nd arg = HuggingFace repo id OR local path.
+#        bash scripts/eval_one.sh mistral my-org/my-fork-adapter
+#        bash scripts/eval_one.sh mistral runs/mistral/defender_v2_cka_20260505_120000
+#   2. --latest = newest local adapter under runs/<defender>/defender_v2_*.
+#        bash scripts/eval_one.sh mistral --latest
+#   3. Default = configs/<defender>.yaml field eval.hf_adapter
+#        (the released anonymous AnchorRep adapter).
+#
+# Base model and defender label (target_model column) are always read from
+# configs/<defender>.yaml so the YAML is the single source of truth.
 
 set -euo pipefail
 
 if [[ $# -lt 1 ]]; then
-    echo "Usage: $0 <defender> [adapter]"
+    echo "Usage: $0 <defender> [adapter|--latest]"
     echo "  defender: llama3 | mistral | vicuna | qwen14b | phi3"
-    echo "  adapter:  HF repo id or local path (optional)"
+    echo "  adapter:  HF repo id OR local path OR --latest (optional)"
     exit 1
 fi
 
 DEFENDER="$1"
-DEFAULT_ADAPTER=""
-DEFAULT_BASE=""
-DEFENDER_LABEL=""   # short name written into the target_model column; must
-                    # match aggregate_asr.py's DEFENDER_INFO['self'] entry.
+CONFIG="configs/${DEFENDER}.yaml"
 
-case "$DEFENDER" in
-    llama3)
-        DEFAULT_ADAPTER="anonsubmission12345/AnchorRep-Llama-3-8B-Instruct"
-        DEFAULT_BASE="meta-llama/Meta-Llama-3-8B-Instruct"
-        DEFENDER_LABEL="Llama3-8b"
-        ;;
-    mistral)
-        DEFAULT_ADAPTER="anonsubmission12345/AnchorRep-Mistral-7B-Instruct-v0.2"
-        DEFAULT_BASE="mistralai/Mistral-7B-Instruct-v0.2"
-        DEFENDER_LABEL="Mistral-7b"
-        ;;
-    vicuna)
-        DEFAULT_ADAPTER="anonsubmission12345/AnchorRep-Vicuna-7B-v1.5"
-        DEFAULT_BASE="lmsys/vicuna-7b-v1.5"
-        DEFENDER_LABEL="Vicuna-7b"
-        ;;
-    qwen14b)
-        DEFAULT_ADAPTER="anonsubmission12345/AnchorRep-Qwen1.5-14B-Chat"
-        DEFAULT_BASE="Qwen/Qwen1.5-14B-Chat"
-        DEFENDER_LABEL="Qwen1.5-14b"
-        ;;
-    phi3)
-        DEFAULT_ADAPTER="anonsubmission12345/AnchorRep-Phi-3-medium-4k-instruct"
-        DEFAULT_BASE="microsoft/Phi-3-medium-4k-instruct"
-        DEFENDER_LABEL="Phi-3-medium"
-        ;;
-    *)
-        echo "[error] unknown defender: $DEFENDER"
-        echo "  Choices: llama3 | mistral | vicuna | qwen14b | phi3"
+if [[ ! -f "$CONFIG" ]]; then
+    echo "[error] config not found: $CONFIG"
+    echo "Available configs:"
+    ls configs/ 2>/dev/null | grep '\.yaml$' || true
+    exit 1
+fi
+
+# Read base / hf_adapter / defender_label from YAML using PyYAML.
+# Helper prints "<base>|<hf_adapter>|<defender_label>" so we get all three in one parse.
+read DEFAULT_BASE DEFAULT_ADAPTER DEFENDER_LABEL <<<"$(python - "$CONFIG" <<'PY'
+import sys, yaml
+cfg = yaml.safe_load(open(sys.argv[1]))
+base = cfg["defender"]["base_model"]
+ev = cfg.get("eval") or {}
+adapter = ev.get("hf_adapter", "")
+label = ev.get("defender_label", cfg["defender"]["name"])
+print(base, adapter, label)
+PY
+)"
+
+if [[ -z "$DEFAULT_BASE" ]]; then
+    echo "[error] $CONFIG missing defender.base_model"
+    exit 1
+fi
+
+# Resolve adapter precedence
+ADAPTER_ARG="${2:-}"
+if [[ "$ADAPTER_ARG" == "--latest" ]]; then
+    LATEST="$(ls -1dt runs/"${DEFENDER}"/defender_v2_* 2>/dev/null | head -1 || true)"
+    if [[ -z "$LATEST" ]]; then
+        echo "[error] --latest requested but no adapters found under runs/${DEFENDER}/defender_v2_*"
+        echo "  Train one first: bash scripts/train_one.sh ${DEFENDER}"
         exit 1
-        ;;
-esac
+    fi
+    ADAPTER="$LATEST"
+elif [[ -n "$ADAPTER_ARG" ]]; then
+    ADAPTER="$ADAPTER_ARG"
+else
+    if [[ -z "$DEFAULT_ADAPTER" ]]; then
+        echo "[error] $CONFIG has no eval.hf_adapter and no adapter override given"
+        echo "  Pass an adapter explicitly or use --latest after training."
+        exit 1
+    fi
+    ADAPTER="$DEFAULT_ADAPTER"
+fi
 
-ADAPTER="${2:-$DEFAULT_ADAPTER}"
 OUTPUT_DIR="logs/cross_model_transfer/${DEFENDER}_repro"
 
+echo "[eval_one] config:  $CONFIG"
 echo "[eval_one] base:    $DEFAULT_BASE"
 echo "[eval_one] adapter: $ADAPTER"
+echo "[eval_one] label:   $DEFENDER_LABEL"
 echo "[eval_one] output:  $OUTPUT_DIR"
 echo
 

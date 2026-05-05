@@ -6,6 +6,10 @@ defender:
   base_model: lmsys/vicuna-7b-v1.5
   precision: fp32
 
+eval:
+  hf_adapter: anonsubmission12345/AnchorRep-Vicuna-7B-v1.5
+  defender_label: Vicuna-7b
+
 anchor:
   name: qwen
   precision: fp16

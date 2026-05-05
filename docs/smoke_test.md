@@ -101,12 +101,20 @@ bash scripts/train_one.sh mistral
 Expected behavior:
 - `[*] Loaded 30 harmful prompts from data/advbench_train_split.json`
 - Two-stage loss progression visible in stdout.
-- Final adapter saved to `runs/mistral/adapter/adapter_model.safetensors` (~320 MB).
+- Final adapter saved to `runs/mistral/defender_v2_cka_<TIMESTAMP>/adapter_model.safetensors` (~320 MB). Each train run gets a fresh timestamp subdir, so multiple runs accumulate side by side under `runs/mistral/`.
 
 ## Step 6: Evaluate the trained adapter
 
 ```bash
-bash scripts/eval_one.sh mistral runs/mistral/adapter
+# --latest auto-picks the newest runs/mistral/defender_v2_* directory.
+bash scripts/eval_one.sh mistral --latest
+
+# Or pass an explicit local path / HF repo id:
+#   bash scripts/eval_one.sh mistral runs/mistral/defender_v2_cka_20260505_120000
+#   bash scripts/eval_one.sh mistral my-org/my-fork-adapter
+
+# With no second arg, eval_one.sh falls back to the released anonymous HF
+# adapter listed under eval.hf_adapter in configs/mistral.yaml.
 ```
 
 Expected behavior:

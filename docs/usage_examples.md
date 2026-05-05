@@ -35,12 +35,17 @@ Time: ~25 minutes on a single L40S.
 You can also evaluate a different adapter:
 
 ```bash
-# Evaluate a locally-trained adapter
-bash scripts/eval_only.sh mistral runs/mistral/adapter
+# Evaluate the most recently trained local adapter (under runs/mistral/)
+bash scripts/eval_only.sh mistral --latest
+
+# Evaluate a specific local adapter directory
+bash scripts/eval_only.sh mistral runs/mistral/defender_v2_cka_20260505_120000
 
 # Evaluate any HuggingFace adapter compatible with the Mistral base
 bash scripts/eval_only.sh mistral some-other-user/SomeOtherAdapter
 ```
+
+The defender base model and `target_model` label come from `configs/mistral.yaml` (`defender.base_model`, `eval.defender_label`); the released anonymous adapter shipped with the paper is the `eval.hf_adapter` field of the same YAML and is the default when no second arg is given.
 
 ---
 

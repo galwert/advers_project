@@ -6,6 +6,10 @@ defender:
   base_model: microsoft/Phi-3-medium-4k-instruct
   precision: fp16
 
+eval:
+  hf_adapter: anonsubmission12345/AnchorRep-Phi-3-medium-4k-instruct
+  defender_label: Phi-3-medium
+
 anchor:
   name: llama3
   precision: fp16

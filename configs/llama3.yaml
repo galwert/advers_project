@@ -6,6 +6,13 @@ defender:
   base_model: meta-llama/Meta-Llama-3-8B-Instruct
   precision: fp32                              # <=8B models use fp32
 
+eval:
+  # Released anonymous HF adapter for paper reproduction. Override on CLI:
+  #   bash scripts/eval_one.sh llama3 <hf-repo-or-local-path>
+  #   bash scripts/eval_one.sh llama3 --latest    (newest runs/llama3/defender_v2_*)
+  hf_adapter: anonsubmission12345/AnchorRep-Llama-3-8B-Instruct
+  defender_label: Llama3-8b                    # written into target_model column; matches aggregate_asr.py
+
 anchor:
   name: phi3
   precision: fp16                              # anchor precision can be reduced freely

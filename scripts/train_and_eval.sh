@@ -27,23 +27,9 @@ shift
 # Step 1: train
 bash "$(dirname "$0")/train_one.sh" "$CONFIG_NAME" "$@"
 
-# Step 2: locate the freshly-saved adapter and evaluate it
-RUNS_DIR="runs/${CONFIG_NAME}"
-LATEST_ADAPTER=$(find "$RUNS_DIR" -mindepth 1 -maxdepth 2 -type d -name "defender_v2_cka_*" -printf '%T@ %p\n' 2>/dev/null \
-                 | sort -nr | head -n1 | cut -d' ' -f2-)
-
-if [[ -z "$LATEST_ADAPTER" ]] || [[ ! -f "$LATEST_ADAPTER/adapter_model.safetensors" ]]; then
-    # Fallback: maybe the script saved directly to runs/<config_name>/adapter
-    if [[ -f "$RUNS_DIR/adapter/adapter_model.safetensors" ]]; then
-        LATEST_ADAPTER="$RUNS_DIR/adapter"
-    else
-        echo "[error] no adapter found under $RUNS_DIR/. Did training finish?"
-        exit 1
-    fi
-fi
-
+# Step 2: evaluate the freshly-saved adapter (eval_one.sh resolves --latest
+# to the newest runs/<config>/defender_v2_* directory by mtime).
 echo
-echo "[train_and_eval] training done. Now evaluating: $LATEST_ADAPTER"
+echo "[train_and_eval] training done. Evaluating freshly-trained adapter (--latest)..."
 echo
-
-bash "$(dirname "$0")/eval_one.sh" "$CONFIG_NAME" "$LATEST_ADAPTER"
+bash "$(dirname "$0")/eval_one.sh" "$CONFIG_NAME" --latest
