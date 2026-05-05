@@ -281,9 +281,17 @@ def load_orbench_hard(exclude_prompts: set = None) -> tuple:
     Returns:
         (full_prompts, held_out_prompts) where held_out_prompts excludes
         the training set. If exclude_prompts is None, held_out == full.
+        Returns ([], []) and prints a warning if the dataset is unreachable
+        (offline run, dataset removed) so callers can skip the OR-Bench
+        evaluation gracefully instead of crashing.
     """
     print("[*] Loading OR-Bench Hard-1K...")
-    ds = load_dataset("bench-llm/or-bench", "or-bench-hard-1k", split="train")
+    try:
+        ds = load_dataset("bench-llm/or-bench", "or-bench-hard-1k", split="train")
+    except Exception as e:
+        print(f"[!] OR-Bench could not be loaded ({type(e).__name__}: {e}); "
+              "skipping OR-Bench refusal-rate / BGR evaluation.")
+        return [], []
     full_prompts = [row["prompt"] for row in ds]
     print(f"    Loaded {len(full_prompts)} prompts")
 
@@ -856,21 +864,25 @@ def run_benchmark(
     model.eval()
     results = {}
 
-    # --- OR-Bench ---
+    # --- OR-Bench (skipped gracefully if the dataset cannot be loaded) ---
     if orbench_full is None:
         orbench_full, _ = load_orbench_hard()
     orbench_prompts = orbench_full
-    print(f"\n--- OR-Bench Hard ({len(orbench_prompts)} prompts) ---")
-    results["orbench"] = evaluate_refusal_rate(
-        model, tokenizer, orbench_prompts, model_type, device,
-        batch_size=batch_size, max_new_tokens=100, label="OR-Bench",
-        verbose=verbose,
-    )
-    print(f"OR-Bench Refusal Rate: {results['orbench']['refusal_rate']*100:.1f}%")
-    print(f"OR-Bench BGR: {results['orbench'].get('bgr', 0)*100:.1f}%")
+    if not orbench_prompts:
+        print("\n[!] Skipping OR-Bench evaluation (no prompts loaded).")
+        results["orbench"] = {"refusal_rate": None, "bgr": None, "skipped": True}
+    else:
+        print(f"\n--- OR-Bench Hard ({len(orbench_prompts)} prompts) ---")
+        results["orbench"] = evaluate_refusal_rate(
+            model, tokenizer, orbench_prompts, model_type, device,
+            batch_size=batch_size, max_new_tokens=100, label="OR-Bench",
+            verbose=verbose,
+        )
+        print(f"OR-Bench Refusal Rate: {results['orbench']['refusal_rate']*100:.1f}%")
+        print(f"OR-Bench BGR: {results['orbench'].get('bgr', 0)*100:.1f}%")
 
     # --- OR-Bench Held-Out (test split, excluding training prompts) ---
-    if orbench_held_out is not None and len(orbench_held_out) < len(orbench_prompts):
+    if orbench_prompts and orbench_held_out is not None and len(orbench_held_out) < len(orbench_prompts):
         print(f"\n--- OR-Bench Held-Out ({len(orbench_held_out)} prompts) ---")
         results["orbench_held_out"] = evaluate_refusal_rate(
             model, tokenizer, orbench_held_out, model_type, device,
@@ -1205,19 +1217,28 @@ def main():
         print(f"{'Benchmark':<20} {'Baseline':>12}")
         print("-" * 34)
 
+    def _pct(d, key):
+        """Return d[key]['refusal_rate'] * 100 if present and not None, else None."""
+        if d is None or key not in d:
+            return None
+        rate = d[key].get("refusal_rate")
+        return rate * 100 if rate is not None else None
+
     # OR-Bench
-    bl_or = baseline["orbench"]["refusal_rate"] * 100 if has_baseline else None
-    df_or = defended["orbench"]["refusal_rate"] * 100 if has_defended else None
+    bl_or = _pct(baseline if has_baseline else None, "orbench")
+    df_or = _pct(defended if has_defended else None, "orbench")
     if bl_or is not None and df_or is not None:
         print(f"{'OR-Bench Hard':<20} {bl_or:>11.1f}% {df_or:>11.1f}% {df_or - bl_or:>+9.1f}%")
     elif df_or is not None:
         print(f"{'OR-Bench Hard':<20} {df_or:>11.1f}%")
     elif bl_or is not None:
         print(f"{'OR-Bench Hard':<20} {bl_or:>11.1f}%")
+    else:
+        print(f"{'OR-Bench Hard':<20} (skipped - dataset unavailable)")
 
     # OR-Bench Held-Out (test split)
-    bl_or_ho = baseline["orbench_held_out"]["refusal_rate"] * 100 if has_baseline and "orbench_held_out" in baseline else None
-    df_or_ho = defended["orbench_held_out"]["refusal_rate"] * 100 if has_defended and "orbench_held_out" in defended else None
+    bl_or_ho = _pct(baseline if has_baseline else None, "orbench_held_out")
+    df_or_ho = _pct(defended if has_defended else None, "orbench_held_out")
     if bl_or_ho is not None and df_or_ho is not None:
         print(f"{'OR-Bench Held-Out':<20} {bl_or_ho:>11.1f}% {df_or_ho:>11.1f}% {df_or_ho - bl_or_ho:>+9.1f}%")
     elif df_or_ho is not None:
