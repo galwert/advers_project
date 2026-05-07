@@ -1,6 +1,6 @@
 {
   "defender": "mistralai/Mistral-7B-Instruct-v0.2",
-  "adapter_path": "/home/wertheizer/advers_project/crl-llm-defense/code/out/Mistral-7b_rep_bending_lr1e-5_4gpu_20_num11_0.5_0.1_0.3_0.3_450step",
+  "adapter_path": "<anonymized>/Mistral-7b_rep_bending_lr1e-5_4gpu_20_num11_0.5_0.1_0.3_0.3_450step",
   "baseline_responses": {
     "self": [
       {

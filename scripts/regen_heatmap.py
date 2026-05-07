@@ -18,7 +18,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 rsa_df = pd.read_json(_REPO_ROOT / 'data' / 'similarity_matrices' / 'rsa_harm_pct50.json',
                       orient='split')
 
-# Short display names (Rom: "make the text bigger and give them shortcuts")
+# Short display names: larger text, abbreviated model labels for readability.
 DISPLAY = {
     'gemma': 'Gemma-7B', 'deepseek': 'DeepSeek-7B', 'solar': 'Solar-10.7B',
     'mistral': 'Mistral-7B', 'zephyr': 'Zephyr-7B', 'starling': 'Starling-7B',

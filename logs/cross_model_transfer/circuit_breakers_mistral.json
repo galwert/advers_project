@@ -1,6 +1,6 @@
 {
   "defender": "mistralai/Mistral-7B-Instruct-v0.2",
-  "adapter_path": "/home/wertheizer/advers_project/crl-llm-defense/code/out/cb_retrained_mistral_link",
+  "adapter_path": "<anonymized>/cb_retrained_mistral_link",
   "baseline_responses": {
     "self": [
       {

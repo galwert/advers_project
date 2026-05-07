@@ -1,6 +1,6 @@
 {
   "defender": "meta-llama/Meta-Llama-3-8B-Instruct",
-  "adapter_path": "/home/wertheizer/advers_project/crl-llm-defense/code/out/Meta_Llama3_8b_rmu_lr5e-5_4gpu_unlearn7_1200_6.5_150step_1",
+  "adapter_path": "<anonymized>/Meta_Llama3_8b_rmu_lr5e-5_4gpu_unlearn7_1200_6.5_150step_1",
   "baseline_responses": {
     "self": [
       {

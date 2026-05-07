@@ -1,6 +1,6 @@
 {
   "defender": "meta-llama/Meta-Llama-3-8B-Instruct",
-  "adapter_path": "/home/wertheizer/advers_project/crl-llm-defense/code/out/Meta_Llama3_8b_circuit_breaker_lr1e-4_4gpu_layers18,29,20,21,22,23,24,25,26,27,28,29,30_10.0_150step_1",
+  "adapter_path": "<anonymized>/Meta_Llama3_8b_circuit_breaker_lr1e-4_4gpu_layers18,29,20,21,22,23,24,25,26,27,28,29,30_10.0_150step_1",
   "baseline_responses": {
     "self": [
       {
