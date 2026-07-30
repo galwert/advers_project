@@ -1,0 +1,30 @@
+{
+  "defender": "llama3",
+  "self_source": "Llama3-8b",
+  "anchor_source": "Phi-3-medium",
+  "self": {
+    "jb": 13,
+    "n": 98,
+    "asr": 13.26530612244898
+  },
+  "anchor": {
+    "jb": 0,
+    "n": 0,
+    "asr": 0.0
+  },
+  "other": {
+    "jb": 328,
+    "n": 1902,
+    "asr": 17.245005257623554
+  },
+  "transfer": {
+    "jb": 328,
+    "n": 1902,
+    "asr": 17.245005257623554
+  },
+  "total": {
+    "jb": 341,
+    "n": 2000,
+    "asr": 17.05
+  }
+}

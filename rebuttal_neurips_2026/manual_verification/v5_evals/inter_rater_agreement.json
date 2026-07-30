@@ -1,0 +1,65 @@
+{
+  "n": 100,
+  "rater1_real": 10,
+  "rater2_real": 5,
+  "percent_agreement": 0.93,
+  "cohens_kappa": 0.5000000000000004,
+  "confusion": {
+    "r1r_r2r": 4,
+    "r1r_r2f": 6,
+    "r1f_r2r": 1,
+    "r1f_r2f": 89
+  },
+  "per_config_agreement": {
+    "canonical_paper_released": {
+      "n": 10,
+      "agree": 6,
+      "pct": 60.0
+    },
+    "v5t_maq_g2a5": {
+      "n": 10,
+      "agree": 10,
+      "pct": 100.0
+    },
+    "v4_phi3+qwen15_g4.0": {
+      "n": 10,
+      "agree": 9,
+      "pct": 90.0
+    },
+    "v5t_sp128_g1a15": {
+      "n": 10,
+      "agree": 10,
+      "pct": 100.0
+    },
+    "v4_sparse_r128_8layers": {
+      "n": 10,
+      "agree": 9,
+      "pct": 90.0
+    },
+    "v5t_maq_g1a5": {
+      "n": 10,
+      "agree": 10,
+      "pct": 100.0
+    },
+    "v4_phi3+mistral_g2.0": {
+      "n": 10,
+      "agree": 10,
+      "pct": 100.0
+    },
+    "v5t_maq_g4a15": {
+      "n": 10,
+      "agree": 10,
+      "pct": 100.0
+    },
+    "v5t_sp128_g1a5": {
+      "n": 10,
+      "agree": 10,
+      "pct": 100.0
+    },
+    "alt_refusal": {
+      "n": 10,
+      "agree": 9,
+      "pct": 90.0
+    }
+  }
+}

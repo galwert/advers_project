@@ -1,0 +1,11 @@
+{
+  "target_model": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "suffix_json": "/home/wertheizer/advers_project/phase3/release/anchor-rep/attack_artifacts/advbench_suffixes_all_models.json",
+  "harmful_prompts_json": "/home/wertheizer/advers_project/phase3/release/anchor-rep/data/advbench_train_split.json",
+  "layer_percentile": 0.5,
+  "n_refusal_prompts": 15,
+  "n_eval": 50,
+  "dtype": "bf16",
+  "out": "runs/01_loss_projection/20260626_160908",
+  "seed": 42
+}

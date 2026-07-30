@@ -1,0 +1,11 @@
+[*] device=cuda
+[*] defender=meta-llama/Meta-Llama-3-8B-Instruct type=llama3
+[*] anchor1=microsoft/Phi-3-medium-4k-instruct type=phi3
+[*] anchor2=mistralai/Mistral-7B-Instruct-v0.2 type=mistral
+[+] Loaded 200 borderline prompts from xstest
+[*] 30 harmful, 200 borderline, 500 benign
+
+[*] === anchor 1: microsoft/Phi-3-medium-4k-instruct ===
+`flash-attention` package not found, consider installing for better performance: import of flash_attn halted; None in sys.modules.
+Current `flash-attenton` does not support `window_size`. Either upgrade or use `attn_implementation='eager'`.
+Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:44<03:41, 44.27s/it]Loading checkpoint shards:  33%|███▎      | 2/6 [01:28<02:57, 44.29s/it]Loading checkpoint shards:  50%|█████     | 3/6 [02:12<02:12, 44.09s/it]Loading checkpoint shards:  67%|██████▋   | 4/6 [02:55<01:27, 43.53s/it]Loading checkpoint shards:  83%|████████▎ | 5/6 [03:37<00:43, 43.24s/it]slurmstepd: error: *** JOB 68315899 ON newton3 CANCELLED AT 2026-07-24T12:32:04 ***

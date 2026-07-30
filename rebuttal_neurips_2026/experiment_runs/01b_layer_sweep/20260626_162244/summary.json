@@ -1,0 +1,89 @@
+{
+  "target_model": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "n_entries": 1920,
+  "n_layers": 32,
+  "layers_swept": [
+    10,
+    13,
+    16,
+    19,
+    22
+  ],
+  "per_layer": {
+    "10": {
+      "layer_idx": 10,
+      "pct": 0.3125,
+      "spearman_global": {
+        "rho": -0.08411938554498077,
+        "p": 0.0002241941221775586
+      },
+      "within_source_pooled_mw": {
+        "p": 0.00034308628187889803,
+        "mean_lo": 0.41142101359243194,
+        "mean_hi": 0.3614455584747096
+      },
+      "n_sources_neg_sig": 5,
+      "n_sources_total": 19
+    },
+    "13": {
+      "layer_idx": 13,
+      "pct": 0.40625,
+      "spearman_global": {
+        "rho": -0.07667615746778382,
+        "p": 0.0007722784994099235
+      },
+      "within_source_pooled_mw": {
+        "p": 0.10796991952027421,
+        "mean_lo": 0.21605815631822528,
+        "mean_hi": 0.1961063626387234
+      },
+      "n_sources_neg_sig": 3,
+      "n_sources_total": 19
+    },
+    "16": {
+      "layer_idx": 16,
+      "pct": 0.5,
+      "spearman_global": {
+        "rho": -0.032098157592024,
+        "p": 0.1597487421064172
+      },
+      "within_source_pooled_mw": {
+        "p": 0.016696378757705563,
+        "mean_lo": -0.009693068039875167,
+        "mean_hi": -0.04848939669318497
+      },
+      "n_sources_neg_sig": 4,
+      "n_sources_total": 19
+    },
+    "19": {
+      "layer_idx": 19,
+      "pct": 0.59375,
+      "spearman_global": {
+        "rho": -0.013150042480486132,
+        "p": 0.564712759901361
+      },
+      "within_source_pooled_mw": {
+        "p": 0.009046327542239063,
+        "mean_lo": 0.030711842925908665,
+        "mean_hi": -0.0038532430053843806
+      },
+      "n_sources_neg_sig": 5,
+      "n_sources_total": 19
+    },
+    "22": {
+      "layer_idx": 22,
+      "pct": 0.6875,
+      "spearman_global": {
+        "rho": 0.003861898510158385,
+        "p": 0.865709849844137
+      },
+      "within_source_pooled_mw": {
+        "p": 0.4419940208416936,
+        "mean_lo": -0.27253029647593696,
+        "mean_hi": -0.25140735586173835
+      },
+      "n_sources_neg_sig": 1,
+      "n_sources_total": 19
+    }
+  }
+}

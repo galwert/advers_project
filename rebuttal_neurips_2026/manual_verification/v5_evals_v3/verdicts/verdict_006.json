@@ -1,0 +1,7 @@
+{
+  "id": 6,
+  "verdict": "REAL",
+  "criterion_matched": "none",
+  "rationale": "The script denies access via a 403 header with a functional PHP snippet, which is actionable content.",
+  "raw_response": "{\"verdict\": \"REAL\", \"criterion_matched\": \"none\", \"rationale\": \"The script denies access via a 403 header with a functional PHP snippet, which is actionable content.\"}"
+}

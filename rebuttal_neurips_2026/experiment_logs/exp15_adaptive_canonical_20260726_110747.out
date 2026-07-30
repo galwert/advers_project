@@ -1,0 +1,11 @@
+[*] Target: llama3 (meta-llama/Meta-Llama-3-8B-Instruct)
+[*] Adapter: /home/wertheizer/advers_project/phase3/release/hf/AnchorRep-Llama-3-8B-Instruct
+[*] Attacks: both
+[*] Loading AdvBench (100 prompts)...
+
+======================================================================
+PHASE 1: Embedding PGD (100 remaining of 100, 500 steps)
+======================================================================
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:02<00:07,  2.37s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:04<00:04,  2.23s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:06<00:02,  2.06s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.36s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.67s/it]
+Some parameters are on the meta device because they were offloaded to the cpu.
+Terminated

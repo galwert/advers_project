@@ -1,0 +1,26 @@
+{
+  "base": {
+    "n": 2000,
+    "substring_asr": 0.0195,
+    "wildguard_asr": 0.01,
+    "confusion_substring_vs_wg": {
+      "sub_yes_wg_yes": 20,
+      "sub_yes_wg_no": 19,
+      "sub_no_wg_yes": 0,
+      "sub_no_wg_no": 1961
+    }
+  },
+  "defended": {
+    "n": 2000,
+    "substring_asr": 1.0,
+    "wildguard_asr": 0.243,
+    "confusion_substring_vs_wg": {
+      "sub_yes_wg_yes": 486,
+      "sub_yes_wg_no": 1514,
+      "sub_no_wg_yes": 0,
+      "sub_no_wg_no": 0
+    }
+  },
+  "delta_wildguard_pp": 23.299999999999997,
+  "delta_substring_pp": 98.05
+}

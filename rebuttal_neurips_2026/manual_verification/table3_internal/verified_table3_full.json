@@ -1,0 +1,174 @@
+{
+  "note": "INTERNAL \u2014 verified Table 3 from manual verification of paper's saved adaptive-attack responses. NOT for rebuttal; only xyar Q2 TAP-Phi-3 correction goes to reviewers. Stored for camera-ready / follow-up.",
+  "protocol": "Paper's app:manual_verification criterion applied to every auto-flagged item in phase3/saved_results/{defender}/adp_*.json",
+  "baseline_verified_pct": {
+    "llama3": {
+      "gcg": null,
+      "pgd": null,
+      "pair": 14.0,
+      "autodan": null,
+      "tap": 14.0
+    },
+    "mistral": {
+      "gcg": 68.0,
+      "pgd": 74.0,
+      "pair": 93.0,
+      "autodan": null,
+      "tap": 93.0
+    },
+    "vicuna": {
+      "gcg": 52.0,
+      "pgd": 74.0,
+      "pair": 54.0,
+      "autodan": null,
+      "tap": 54.0
+    },
+    "qwen14b": {
+      "gcg": 30.0,
+      "pgd": 48.0,
+      "pair": null,
+      "autodan": null,
+      "tap": null
+    },
+    "phi3": {
+      "gcg": 44.0,
+      "pgd": 56.0,
+      "pair": 76.0,
+      "autodan": null,
+      "tap": 76.0
+    }
+  },
+  "defended_verified_pct": {
+    "llama3": {
+      "gcg": 2.0,
+      "pgd": 8.0,
+      "pair": 5.0,
+      "autodan": null,
+      "tap": 5.0
+    },
+    "mistral": {
+      "gcg": 26.0,
+      "pgd": 22.0,
+      "pair": 24.0,
+      "autodan": null,
+      "tap": 24.0
+    },
+    "vicuna": {
+      "gcg": 40.0,
+      "pgd": 74.0,
+      "pair": 22.0,
+      "autodan": null,
+      "tap": 22.0
+    },
+    "qwen14b": {
+      "gcg": 10.0,
+      "pgd": 44.0,
+      "pair": null,
+      "autodan": null,
+      "tap": null
+    },
+    "phi3": {
+      "gcg": 26.0,
+      "pgd": 46.0,
+      "pair": 58.0,
+      "autodan": null,
+      "tap": 58.0
+    }
+  },
+  "paper_auto_pct": {
+    "baseline": {
+      "llama3": {
+        "gcg": 2,
+        "pgd": 68,
+        "pair": 50,
+        "autodan": 4,
+        "tap": 50
+      },
+      "mistral": {
+        "gcg": 76,
+        "pgd": 82,
+        "pair": 76,
+        "autodan": 76,
+        "tap": 58
+      },
+      "vicuna": {
+        "gcg": 86,
+        "pgd": 94,
+        "pair": 54,
+        "autodan": 48,
+        "tap": 70
+      },
+      "qwen14b": {
+        "gcg": 42,
+        "pgd": 90,
+        "pair": 20,
+        "autodan": 0,
+        "tap": 14
+      },
+      "phi3": {
+        "gcg": 54,
+        "pgd": 60,
+        "pair": 48,
+        "autodan": 76,
+        "tap": 48
+      }
+    },
+    "defended": {
+      "llama3": {
+        "gcg": 2,
+        "pgd": 40,
+        "pair": 0,
+        "autodan": 0,
+        "tap": 42
+      },
+      "mistral": {
+        "gcg": 40,
+        "pgd": 40,
+        "pair": 66,
+        "autodan": 2,
+        "tap": 58
+      },
+      "vicuna": {
+        "gcg": 54,
+        "pgd": 88,
+        "pair": 40,
+        "autodan": 10,
+        "tap": 56
+      },
+      "qwen14b": {
+        "gcg": 10,
+        "pgd": 86,
+        "pair": 18,
+        "autodan": 0,
+        "tap": 12
+      },
+      "phi3": {
+        "gcg": 42,
+        "pgd": 52,
+        "pair": 38,
+        "autodan": 64,
+        "tap": 54
+      }
+    }
+  },
+  "qwen14b_pgd_adapter_note": "Saved-data adapter was deleted checkpoint (defender_v2_cka_20260321_031750) which gave +20pp anomaly under manual verification. Rerun on released canonical AnchorRep-Qwen1.5-14B-Chat gives 44% verified (delta -4pp vs baseline 48%). Use canonical value only.",
+  "problem_cells_flagged_for_camera_ready": [
+    {
+      "cell": "vicuna Emb.PGD",
+      "verified_baseline": 74,
+      "verified_defended": 74,
+      "delta": 0,
+      "note": "Defense doesn't reduce ASR on Vicuna PGD"
+    },
+    {
+      "cell": "phi3 AutoDAN (paper)",
+      "delta": "+12 (paper auto)",
+      "note": "Was already unfavorable in paper; not verified"
+    },
+    {
+      "cell": "mistral TAP (paper)",
+      "delta": "0 (paper auto)",
+      "note": "Paper showed 0 delta; verified now shows -69 (huge improvement)"
+    }
+  ]
+}

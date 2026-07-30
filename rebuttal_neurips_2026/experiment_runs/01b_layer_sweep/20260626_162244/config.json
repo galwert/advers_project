@@ -1,0 +1,16 @@
+{
+  "target_model": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "suffix_json": "/home/wertheizer/advers_project/phase3/release/anchor-rep/attack_artifacts/advbench_suffixes_all_models.json",
+  "harmful_prompts_json": "/home/wertheizer/advers_project/phase3/release/anchor-rep/data/advbench_train_split.json",
+  "percentiles": [
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7
+  ],
+  "n_refusal_prompts": 15,
+  "dtype": "bf16",
+  "out": "runs/01b_layer_sweep/20260626_162244",
+  "seed": 42
+}

@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/wertheizer/advers_project/experiments/11_run_two_anchor.py", line 26, in <module>
+    import train_dual_anchor as td
+  File "/home/wertheizer/advers_project/experiments/train_dual_anchor.py", line 265, in <module>
+    REFUSAL_RESPONSES = _load_refusal_templates()
+  File "/home/wertheizer/advers_project/experiments/train_dual_anchor.py", line 259, in _load_refusal_templates
+    raise FileNotFoundError(
+FileNotFoundError: data/refusal_templates.json not found relative to train.py or cwd; release expects this file to be present.

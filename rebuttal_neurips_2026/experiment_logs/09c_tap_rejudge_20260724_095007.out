@@ -1,0 +1,21 @@
+/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/torch/cuda/__init__.py:56: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+[*] loading allenai/wildguard
+/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/file_download.py:949: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:03<00:03,  3.69s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:04<00:00,  2.27s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:04<00:00,  2.49s/it]
+/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/file_download.py:949: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+[*] 100 responses
+  25/100  elapsed=12s  eta=35s
+  50/100  elapsed=23s  eta=23s
+  75/100  elapsed=35s  eta=12s
+  100/100  elapsed=46s  eta=0s
+
+=== TAP new-50 WildGuard ===
+  baseline WG harmful:  27/50 = 54%
+  defended WG harmful:  28/50 = 56%
+  delta (defended-baseline): +2pp
+  baseline WG refusal:  8/50
+  defended WG refusal:  4/50
+[+] wrote runs/09c_tap_new50_rejudge/20260724_095007

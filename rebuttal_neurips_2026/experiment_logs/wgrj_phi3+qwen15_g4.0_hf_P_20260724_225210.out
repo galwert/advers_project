@@ -1,0 +1,88 @@
+[*] device=cuda
+[*] base=2000  defended=2000
+[*] loading judge allenai/wildguard
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:20<00:20, 20.42s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:31<00:00, 14.67s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:31<00:00, 15.53s/it]
+  [base] 50/2000  elapsed=15s  eta=579s
+  [base] 100/2000  elapsed=29s  eta=554s
+  [base] 150/2000  elapsed=43s  eta=535s
+  [base] 200/2000  elapsed=57s  eta=517s
+  [base] 250/2000  elapsed=71s  eta=500s
+  [base] 300/2000  elapsed=85s  eta=484s
+  [base] 350/2000  elapsed=99s  eta=469s
+  [base] 400/2000  elapsed=113s  eta=454s
+  [base] 450/2000  elapsed=127s  eta=439s
+  [base] 500/2000  elapsed=141s  eta=424s
+  [base] 550/2000  elapsed=155s  eta=410s
+  [base] 600/2000  elapsed=169s  eta=395s
+  [base] 650/2000  elapsed=184s  eta=381s
+  [base] 700/2000  elapsed=198s  eta=367s
+  [base] 750/2000  elapsed=212s  eta=353s
+  [base] 800/2000  elapsed=226s  eta=338s
+  [base] 850/2000  elapsed=240s  eta=324s
+  [base] 900/2000  elapsed=254s  eta=310s
+  [base] 950/2000  elapsed=268s  eta=296s
+  [base] 1000/2000  elapsed=282s  eta=282s
+  [base] 1050/2000  elapsed=296s  eta=267s
+  [base] 1100/2000  elapsed=310s  eta=253s
+  [base] 1150/2000  elapsed=324s  eta=239s
+  [base] 1200/2000  elapsed=338s  eta=225s
+  [base] 1250/2000  elapsed=352s  eta=211s
+  [base] 1300/2000  elapsed=366s  eta=197s
+  [base] 1350/2000  elapsed=380s  eta=183s
+  [base] 1400/2000  elapsed=394s  eta=169s
+  [base] 1450/2000  elapsed=408s  eta=155s
+  [base] 1500/2000  elapsed=422s  eta=141s
+  [base] 1550/2000  elapsed=436s  eta=126s
+  [base] 1600/2000  elapsed=450s  eta=112s
+  [base] 1650/2000  elapsed=464s  eta=98s
+  [base] 1700/2000  elapsed=478s  eta=84s
+  [base] 1750/2000  elapsed=492s  eta=70s
+  [base] 1800/2000  elapsed=506s  eta=56s
+  [base] 1850/2000  elapsed=520s  eta=42s
+  [base] 1900/2000  elapsed=534s  eta=28s
+  [base] 1950/2000  elapsed=548s  eta=14s
+  [base] 2000/2000  elapsed=562s  eta=0s
+  [defended] 50/2000  elapsed=14s  eta=546s
+  [defended] 100/2000  elapsed=28s  eta=533s
+  [defended] 150/2000  elapsed=42s  eta=519s
+  [defended] 200/2000  elapsed=56s  eta=504s
+  [defended] 250/2000  elapsed=70s  eta=490s
+  [defended] 300/2000  elapsed=84s  eta=476s
+  [defended] 350/2000  elapsed=98s  eta=462s
+  [defended] 400/2000  elapsed=112s  eta=448s
+  [defended] 450/2000  elapsed=126s  eta=434s
+  [defended] 500/2000  elapsed=140s  eta=420s
+  [defended] 550/2000  elapsed=154s  eta=406s
+  [defended] 600/2000  elapsed=168s  eta=392s
+  [defended] 650/2000  elapsed=182s  eta=378s
+  [defended] 700/2000  elapsed=196s  eta=364s
+  [defended] 750/2000  elapsed=210s  eta=350s
+  [defended] 800/2000  elapsed=224s  eta=336s
+  [defended] 850/2000  elapsed=238s  eta=322s
+  [defended] 900/2000  elapsed=252s  eta=308s
+  [defended] 950/2000  elapsed=266s  eta=294s
+  [defended] 1000/2000  elapsed=280s  eta=280s
+  [defended] 1050/2000  elapsed=294s  eta=266s
+  [defended] 1100/2000  elapsed=308s  eta=252s
+  [defended] 1150/2000  elapsed=322s  eta=238s
+  [defended] 1200/2000  elapsed=336s  eta=224s
+  [defended] 1250/2000  elapsed=350s  eta=210s
+  [defended] 1300/2000  elapsed=364s  eta=196s
+  [defended] 1350/2000  elapsed=378s  eta=182s
+  [defended] 1400/2000  elapsed=392s  eta=168s
+  [defended] 1450/2000  elapsed=406s  eta=154s
+  [defended] 1500/2000  elapsed=420s  eta=140s
+  [defended] 1550/2000  elapsed=434s  eta=126s
+  [defended] 1600/2000  elapsed=448s  eta=112s
+  [defended] 1650/2000  elapsed=462s  eta=98s
+  [defended] 1700/2000  elapsed=476s  eta=84s
+  [defended] 1750/2000  elapsed=490s  eta=70s
+  [defended] 1800/2000  elapsed=504s  eta=56s
+  [defended] 1850/2000  elapsed=518s  eta=42s
+  [defended] 1900/2000  elapsed=532s  eta=28s
+  [defended] 1950/2000  elapsed=546s  eta=14s
+  [defended] 2000/2000  elapsed=560s  eta=0s
+[base] n=2000  substring=98.0%  wildguard=68.7%
+[defended] n=2000  substring=100.0%  wildguard=66.8%
+Δ substring: +1.9pp  Δ wildguard: -1.8pp
+[+] /home/wertheizer/advers_project/experiments/runs/v4_eval/20260724_163802_phi3+qwen15_g4.0_hf_P/wg  base_positives=1373 defended_positives=1337

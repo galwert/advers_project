@@ -1,0 +1,6 @@
+=== embedding PGD (500 steps × 100 prompts) ===
+usage: eval_cross_model_wrapper.py [-h] --base-model BASE_MODEL --adapter
+Traceback (most recent call last):
+  File "/home/wertheizer/advers_project/phase3/release/anchor-rep/eval/adaptive_attacks_advanced.py", line 40, in <module>
+    from llm_judge import load_judge, classify_response, setup_gibberish_detector, strict_coherence_filter
+ModuleNotFoundError: No module named 'llm_judge'

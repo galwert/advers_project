@@ -1,0 +1,24 @@
+[*] device=cuda
+[*] loading base meta-llama/Meta-Llama-3-8B-Instruct
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:03,  1.12s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:02<00:02,  1.06s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:03<00:01,  1.01s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.36it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.17it/s]
+[*] n_layers=32
+[*] eval set: 60 (prompt, suffix) pairs
+[*] k_max=64
+  collecting diff matrix at L10: 30 prompts × 10 templates
+  base L10 top-k explained variance: ['0.181', '0.143', '0.088', '0.066', '0.051', '0.039', '0.036', '0.030'] (k_max=64)
+  collecting diff matrix at L16: 30 prompts × 10 templates
+  base L16 top-k explained variance: ['0.246', '0.158', '0.089', '0.064', '0.045', '0.038', '0.035', '0.029'] (k_max=64)
+
+[base] starting ASR eval
+Traceback (most recent call last):
+  File "/home/wertheizer/advers_project/experiments/03_rank_k_projection.py", line 347, in <module>
+    main()
+  File "/home/wertheizer/advers_project/experiments/03_rank_k_projection.py", line 266, in main
+    rows_a = run_arm(base, tok, eval_set, a.layers, a.ks, V_base, device,
+  File "/home/wertheizer/advers_project/experiments/03_rank_k_projection.py", line 185, in run_arm
+    decoder_layers = find_decoder_layers(model)
+  File "/home/wertheizer/advers_project/experiments/03_rank_k_projection.py", line 176, in find_decoder_layers
+    inner = model.base_model.model if hasattr(model, "base_model") else model
+  File "/home/wertheizer/miniforge3/envs/defense_env/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1964, in __getattr__
+    raise AttributeError(
+AttributeError: 'LlamaModel' object has no attribute 'model'

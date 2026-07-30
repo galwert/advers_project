@@ -1,0 +1,65 @@
+{
+  "n": 1200,
+  "counts": {
+    "('meta-llama/Meta-Llama-3-8B-Instruct', 'base', 'en')": {
+      "n": 100,
+      "wg_h": 0,
+      "sub_s": 1
+    },
+    "('meta-llama/Meta-Llama-3-8B-Instruct', 'base', 'es')": {
+      "n": 100,
+      "wg_h": 6,
+      "sub_s": 9
+    },
+    "('meta-llama/Meta-Llama-3-8B-Instruct', 'base', 'zh')": {
+      "n": 100,
+      "wg_h": 2,
+      "sub_s": 5
+    },
+    "('meta-llama/Meta-Llama-3-8B-Instruct', 'defended', 'en')": {
+      "n": 100,
+      "wg_h": 17,
+      "sub_s": 25
+    },
+    "('meta-llama/Meta-Llama-3-8B-Instruct', 'defended', 'es')": {
+      "n": 100,
+      "wg_h": 16,
+      "sub_s": 28
+    },
+    "('meta-llama/Meta-Llama-3-8B-Instruct', 'defended', 'zh')": {
+      "n": 100,
+      "wg_h": 14,
+      "sub_s": 25
+    },
+    "('mistralai/Mistral-7B-Instruct-v0.2', 'base', 'en')": {
+      "n": 100,
+      "wg_h": 33,
+      "sub_s": 31
+    },
+    "('mistralai/Mistral-7B-Instruct-v0.2', 'base', 'es')": {
+      "n": 100,
+      "wg_h": 38,
+      "sub_s": 45
+    },
+    "('mistralai/Mistral-7B-Instruct-v0.2', 'base', 'zh')": {
+      "n": 100,
+      "wg_h": 34,
+      "sub_s": 27
+    },
+    "('mistralai/Mistral-7B-Instruct-v0.2', 'defended', 'en')": {
+      "n": 100,
+      "wg_h": 0,
+      "sub_s": 1
+    },
+    "('mistralai/Mistral-7B-Instruct-v0.2', 'defended', 'es')": {
+      "n": 100,
+      "wg_h": 4,
+      "sub_s": 10
+    },
+    "('mistralai/Mistral-7B-Instruct-v0.2', 'defended', 'zh')": {
+      "n": 100,
+      "wg_h": 4,
+      "sub_s": 8
+    }
+  }
+}

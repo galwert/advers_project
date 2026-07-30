@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "n_total": 200,
+    "n_likely_REAL": 17,
+    "n_BORDERLINE": 183,
+    "n_FP": 0,
+    "n_reused": 19,
+    "n_new_rated": 181,
+    "note_on_bias": "positive directional_bias => R2 is stricter (fewer REAL); negative => R2 is more lenient"
+  },
+  "r1_strict": {
+    "collapse_rule": "R1 likely_REAL -> REAL; R1 BORDERLINE + FP -> FP (paper-ASR aligned)",
+    "raw_percent_agreement": 0.89,
+    "cohens_kappa": 0.0355,
+    "chance_agreement_pe": 0.886,
+    "confusion": {
+      "r1R_r2R": 1,
+      "r1R_r2F": 16,
+      "r1F_r2R": 6,
+      "r1F_r2F": 177
+    },
+    "positive_percent_agreement": 0.0833,
+    "negative_percent_agreement": 0.9415,
+    "r1_real_count": 17,
+    "r2_real_count": 7,
+    "directional_bias_r1_minus_r2": 10
+  },
+  "r1_lenient": {
+    "collapse_rule": "R1 likely_REAL + BORDERLINE -> REAL; R1 FP -> FP (mirrors original-100 study, where R1 was already forced to a binary)",
+    "raw_percent_agreement": 0.035,
+    "cohens_kappa": 0.0,
+    "chance_agreement_pe": 0.035,
+    "confusion": {
+      "r1R_r2R": 7,
+      "r1R_r2F": 193,
+      "r1F_r2R": 0,
+      "r1F_r2F": 0
+    },
+    "positive_percent_agreement": 0.0676,
+    "negative_percent_agreement": 0.0,
+    "r1_real_count": 200,
+    "r2_real_count": 7,
+    "directional_bias_r1_minus_r2": 193
+  },
+  "primary_report_uses": "r1_strict",
+  "per_config_strict": {
+    "alt_refusal": {
+      "n": 11,
+      "agree": 10,
+      "r1_real_strict": 1,
+      "r2_real": 0,
+      "pct_agreement": 90.91
+    },
+    "canonical_paper_released": {
+      "n": 13,
+      "agree": 8,
+      "r1_real_strict": 4,
+      "r2_real": 3,
+      "pct_agreement": 61.54
+    },
+    "v4_phi3+mistral_g2.0": {
+      "n": 35,
+      "agree": 28,
+      "r1_real_strict": 3,
+      "r2_real": 4,
+      "pct_agreement": 80.0
+    },
+    "v4_phi3+qwen15_g4.0": {
+      "n": 12,
+      "agree": 10,
+      "r1_real_strict": 2,
+      "r2_real": 0,
+      "pct_agreement": 83.33
+    },
+    "v4_sparse_r128_8layers": {
+      "n": 36,
+      "agree": 32,
+      "r1_real_strict": 4,
+      "r2_real": 0,
+      "pct_agreement": 88.89
+    },
+    "v5t_maq_g4a15": {
+      "n": 10,
+      "agree": 8,
+      "r1_real_strict": 2,
+      "r2_real": 0,
+      "pct_agreement": 80.0
+    },
+    "v5t_sp128_g1a15": {
+      "n": 2,
+      "agree": 1,
+      "r1_real_strict": 1,
+      "r2_real": 0,
+      "pct_agreement": 50.0
+    },
+    "v5t_maq_g1a5": {
+      "n": 50,
+      "agree": 50,
+      "r1_real_strict": 0,
+      "r2_real": 0,
+      "pct_agreement": 100.0
+    },
+    "v5t_maq_g2a5": {
+      "n": 16,
+      "agree": 16,
+      "r1_real_strict": 0,
+      "r2_real": 0,
+      "pct_agreement": 100.0
+    },
+    "v5t_sp128_g1a5": {
+      "n": 15,
+      "agree": 15,
+      "r1_real_strict": 0,
+      "r2_real": 0,
+      "pct_agreement": 100.0
+    }
+  },
+  "comparison_original_100_random_sample": {
+    "n": 100,
+    "rater1_real": 10,
+    "rater2_real": 5,
+    "percent_agreement": 0.93,
+    "cohens_kappa": 0.5
+  },
+  "delta_kappa_stratified_strict_vs_random": -0.4645,
+  "delta_kappa_stratified_lenient_vs_random": -0.5
+}

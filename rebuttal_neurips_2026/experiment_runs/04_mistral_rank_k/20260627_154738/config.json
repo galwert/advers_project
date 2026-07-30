@@ -1,0 +1,26 @@
+{
+  "base_model": "mistralai/Mistral-7B-Instruct-v0.2",
+  "adapter": "/home/wertheizer/advers_project/phase3/saved_results/mistral/adapter",
+  "suffix_json": "/home/wertheizer/advers_project/phase3/release/anchor-rep/attack_artifacts/advbench_suffixes_all_models.json",
+  "harmful_prompts_json": "/home/wertheizer/advers_project/phase3/release/anchor-rep/data/advbench_train_split.json",
+  "layers": [
+    10,
+    16
+  ],
+  "ks": [
+    0,
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64
+  ],
+  "arms": "both",
+  "n_prompts": 60,
+  "max_new_tokens": 96,
+  "dtype": "bf16",
+  "out": "runs/04_mistral_rank_k/20260627_154738",
+  "seed": 42
+}

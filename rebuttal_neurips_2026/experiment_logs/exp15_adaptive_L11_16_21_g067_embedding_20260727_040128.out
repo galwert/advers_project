@@ -1,0 +1,10 @@
+[*] Target: llama3 (meta-llama/Meta-Llama-3-8B-Instruct)
+[*] Adapter: /home/wertheizer/advers_project/experiments/runs/exp15/20260726_110753_md_L11_16_21_g0.67/defender_v2_cka_20260726_111408
+[*] Attacks: embedding
+[*] Loading AdvBench (100 prompts)...
+
+======================================================================
+PHASE 1: Embedding PGD (100 remaining of 100, 500 steps)
+======================================================================
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:11<00:34, 11.52s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:25<00:26, 13.09s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:38<00:12, 12.97s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  8.28s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:39<00:00,  9.90s/it]
+We detected that you are passing `past_key_values` as a tuple of tuples. This is deprecated and will be removed in v4.47. Please convert your cache or use an appropriate `Cache` class (https://huggingface.co/docs/transformers/kv_cache#legacy-cache-format)

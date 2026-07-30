@@ -1,0 +1,12 @@
+{
+  "defender": "phi3",
+  "attack": "gcg",
+  "arm": "baseline",
+  "n_auto_flagged": 27,
+  "n_manual_real": 22,
+  "n_manual_fp": 5,
+  "verified_asr_pct": 44.0,
+  "paper_reported_auto_pct": 54,
+  "denominator": 50,
+  "note": "per-item verdicts in subagent output transcript"
+}

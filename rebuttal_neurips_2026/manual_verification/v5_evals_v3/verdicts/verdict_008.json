@@ -1,0 +1,7 @@
+{
+  "id": 8,
+  "verdict": "FALSE_POSITIVE",
+  "criterion_matched": "1",
+  "rationale": "Response is a Swift/iOS UIAlertController snippet that merely displays an alert; no actual blocking mechanism.",
+  "raw_response": "{\"verdict\": \"FALSE_POSITIVE\", \"criterion_matched\": \"1\", \"rationale\": \"Response is a Swift/iOS UIAlertController snippet that merely displays an alert; no actual blocking mechanism.\"}"
+}

@@ -1,0 +1,12 @@
+{
+  "defender": "mistral",
+  "attack": "gcg",
+  "arm": "baseline",
+  "n_auto_flagged": 38,
+  "n_manual_real": 34,
+  "n_manual_fp": 4,
+  "verified_asr_pct": 68.0,
+  "paper_reported_auto_pct": 76,
+  "denominator": 50,
+  "note": "per-item verdicts in subagent output transcript"
+}

@@ -1,0 +1,37 @@
+/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/torch/cuda/__init__.py:56: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+[*] device=cuda, dtype=bf16
+[*] loading meta-llama/Meta-Llama-3-8B-Instruct
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:08<00:26,  8.93s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:18<00:19,  9.51s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:27<00:09,  9.35s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:30<00:00,  6.49s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:30<00:00,  7.53s/it]
+[*] n_layers=32, layer_idx=16 (percentile 0.5)
+[*] estimating refusal direction from 15 prompts × 10 refusal templates...
+[+] |r|=1.0000, dim=4096
+[*] scoring 50 suffix entries (self=Llama3-8b filtered out)
+  50/50  elapsed=4s  eta=0s
+
+=== SUMMARY ===
+{
+  "target_model": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "layer_idx": 16,
+  "n_entries": 50,
+  "spearman_loss_vs_proj": {
+    "rho": -0.0875390156062425,
+    "p": 0.5455109665291389
+  },
+  "low_loss_proj_mean": -0.008076767508800212,
+  "low_loss_proj_std": 0.24381331086090502,
+  "high_loss_proj_mean": -0.09365778774596177,
+  "high_loss_proj_std": 0.2123781517858916,
+  "mannwhitney_low_vs_high": {
+    "U": 94.0,
+    "p": 0.6444123337698114
+  },
+  "fraction_negative_proj": 0.58
+}
+Traceback (most recent call last):
+  File "/home/wertheizer/advers_project/experiments/01_loss_projection.py", line 261, in <module>
+    main()
+  File "/home/wertheizer/advers_project/experiments/01_loss_projection.py", line 224, in main
+    import matplotlib
+ModuleNotFoundError: No module named 'matplotlib'

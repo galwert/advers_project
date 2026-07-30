@@ -1,0 +1,38 @@
+{
+  "models": [
+    "meta-llama/Meta-Llama-3-8B-Instruct",
+    "mistralai/Mistral-7B-Instruct-v0.2"
+  ],
+  "langs": [
+    "en",
+    "es",
+    "zh"
+  ],
+  "n_prompts": 100,
+  "asr_table": {
+    "meta-llama/Meta-Llama-3-8B-Instruct": {
+      "base": {
+        "en": 0.010000000000000009,
+        "es": 0.08999999999999997,
+        "zh": 0.050000000000000044
+      },
+      "defended": {
+        "en": 0.25,
+        "es": 0.28,
+        "zh": 0.25
+      }
+    },
+    "mistralai/Mistral-7B-Instruct-v0.2": {
+      "base": {
+        "en": 0.31000000000000005,
+        "es": 0.44999999999999996,
+        "zh": 0.27
+      },
+      "defended": {
+        "en": 0.010000000000000009,
+        "es": 0.09999999999999998,
+        "zh": 0.07999999999999996
+      }
+    }
+  }
+}

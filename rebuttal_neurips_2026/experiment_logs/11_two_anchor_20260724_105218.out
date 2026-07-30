@@ -1,0 +1,20 @@
+[*] device=cuda
+[*] defender=meta-llama/Meta-Llama-3-8B-Instruct type=llama3
+[*] anchor1=microsoft/Phi-3-medium-4k-instruct type=phi3
+[*] anchor2=Qwen/Qwen1.5-7B-Chat type=qwen
+Old caching folder /home/wertheizer/.cache/huggingface/datasets/Paul___xs_test/default/0.0.0/f600c994b256f12867dfa5b3eb3d545a3e62f8b5 for dataset xs_test exists but no data were found. Removing it. 
+Generating train split:   0%|          | 0/450 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 450/450 [00:00<00:00, 2578.75 examples/s]Generating train split: 100%|██████████| 450/450 [00:00<00:00, 2555.18 examples/s]
+[+] Loaded 200 borderline prompts from xstest
+Old caching folder /home/wertheizer/.cache/huggingface/datasets/wikitext/wikitext-2-raw-v1/0.0.0/b08601e04326c79dfdd32d625aee71d232d685c3 for dataset wikitext exists but no data were found. Removing it. 
+Generating test split:   0%|          | 0/4358 [00:00<?, ? examples/s]Generating test split:  23%|██▎       | 1000/4358 [00:00<00:00, 4319.16 examples/s]Generating test split: 100%|██████████| 4358/4358 [00:00<00:00, 18011.54 examples/s]
+Generating train split:   0%|          | 0/36718 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 36718/36718 [00:00<00:00, 504236.57 examples/s]
+Generating validation split:   0%|          | 0/3760 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 3760/3760 [00:00<00:00, 264115.21 examples/s]
+[*] 30 harmful, 200 borderline, 500 benign
+
+[*] === anchor 1: microsoft/Phi-3-medium-4k-instruct ===
+Traceback (most recent call last):
+  File "/home/wertheizer/advers_project/experiments/11_run_two_anchor.py", line 171, in <module>
+    main()
+  File "/home/wertheizer/advers_project/experiments/11_run_two_anchor.py", line 97, in main
+    anc1 = AutoModelForCausalLM.from_pretrained(
+TypeError: transformers.models.auto.auto_factory._BaseAutoModelClass.from_pretrained() got multiple values for keyword argument 'device_map'

@@ -1,0 +1,69 @@
+/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/torch/cuda/__init__.py:56: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+[*] device=cuda, dtype=bf16
+[*] loading meta-llama/Meta-Llama-3-8B-Instruct
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:03,  1.31s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:02<00:02,  1.26s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:03<00:01,  1.21s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.15it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.01s/it]
+[*] n_layers=32, layer_idx=16 (percentile 0.5)
+[*] estimating refusal direction from 15 prompts × 10 refusal templates...
+[+] |r|=1.0000, dim=4096
+[*] scoring 1920 suffix entries (self=Llama3-8b filtered out)
+  50/1920  elapsed=3s  eta=115s
+  100/1920  elapsed=6s  eta=106s
+  150/1920  elapsed=9s  eta=101s
+  200/1920  elapsed=11s  eta=97s
+  250/1920  elapsed=14s  eta=94s
+  300/1920  elapsed=17s  eta=90s
+  350/1920  elapsed=19s  eta=87s
+  400/1920  elapsed=22s  eta=84s
+  450/1920  elapsed=25s  eta=81s
+  500/1920  elapsed=28s  eta=79s
+  550/1920  elapsed=30s  eta=76s
+  600/1920  elapsed=33s  eta=73s
+  650/1920  elapsed=36s  eta=70s
+  700/1920  elapsed=39s  eta=67s
+  750/1920  elapsed=41s  eta=64s
+  800/1920  elapsed=44s  eta=62s
+  850/1920  elapsed=47s  eta=59s
+  900/1920  elapsed=49s  eta=56s
+  950/1920  elapsed=52s  eta=53s
+  1000/1920  elapsed=55s  eta=50s
+  1050/1920  elapsed=58s  eta=48s
+  1100/1920  elapsed=60s  eta=45s
+  1150/1920  elapsed=63s  eta=42s
+  1200/1920  elapsed=66s  eta=39s
+  1250/1920  elapsed=68s  eta=37s
+  1300/1920  elapsed=71s  eta=34s
+  1350/1920  elapsed=74s  eta=31s
+  1400/1920  elapsed=77s  eta=28s
+  1450/1920  elapsed=79s  eta=26s
+  1500/1920  elapsed=82s  eta=23s
+  1550/1920  elapsed=85s  eta=20s
+  1600/1920  elapsed=87s  eta=17s
+  1650/1920  elapsed=90s  eta=15s
+  1700/1920  elapsed=93s  eta=12s
+  1750/1920  elapsed=96s  eta=9s
+  1800/1920  elapsed=98s  eta=7s
+  1850/1920  elapsed=101s  eta=4s
+  1900/1920  elapsed=104s  eta=1s
+
+=== SUMMARY ===
+{
+  "target_model": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "layer_idx": 16,
+  "n_entries": 1920,
+  "spearman_loss_vs_proj": {
+    "rho": -0.032098157592024,
+    "p": 0.1597487421064172
+  },
+  "low_loss_proj_mean": -0.0192602323833853,
+  "low_loss_proj_std": 0.23834050062110732,
+  "high_loss_proj_mean": -0.039920991791906876,
+  "high_loss_proj_std": 0.28263416379021383,
+  "mannwhitney_low_vs_high": {
+    "U": 121127.0,
+    "p": 0.20622606744311145
+  },
+  "fraction_negative_proj": 0.5739583333333333
+}
+[+] wrote runs/01_loss_projection/20260626_161724

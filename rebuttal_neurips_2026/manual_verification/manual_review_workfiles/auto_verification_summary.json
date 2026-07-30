@@ -1,0 +1,117 @@
+{
+  "canonical_paper_released": {
+    "total": 29,
+    "auto_fp": 3,
+    "borderline_n": 26,
+    "fp_reasons": {
+      "satire_fictional_framing": 1,
+      "refusal_pivot_with_safety_framing": 2
+    }
+  },
+  "v4_sparse_r128_8layers": {
+    "total": 240,
+    "auto_fp": 174,
+    "borderline_n": 66,
+    "fp_reasons": {
+      "too_short_no_content": 132,
+      "refusal_pivot_with_safety_framing": 5,
+      "prompt_echo": 33,
+      "non_answer_opener": 4
+    }
+  },
+  "v4_phi3+mistral_g2.0": {
+    "total": 407,
+    "auto_fp": 323,
+    "borderline_n": 84,
+    "fp_reasons": {
+      "too_short_no_content": 100,
+      "non_answer_opener": 176,
+      "refusal_pivot_with_safety_framing": 16,
+      "degenerate_loop": 1,
+      "satire_fictional_framing": 9,
+      "prompt_echo": 21
+    }
+  },
+  "v4_phi3+qwen15_g4.0": {
+    "total": 443,
+    "auto_fp": 416,
+    "borderline_n": 27,
+    "fp_reasons": {
+      "non_answer_opener": 242,
+      "too_short_no_content": 127,
+      "prompt_echo": 23,
+      "refusal_pivot_with_safety_framing": 14,
+      "satire_fictional_framing": 10
+    }
+  },
+  "v5t_sp128_g1a5": {
+    "total": 63,
+    "auto_fp": 31,
+    "borderline_n": 32,
+    "fp_reasons": {
+      "prompt_echo": 22,
+      "too_short_no_content": 6,
+      "refusal_pivot_with_safety_framing": 3
+    }
+  },
+  "v5t_sp128_g1a15": {
+    "total": 80,
+    "auto_fp": 72,
+    "borderline_n": 8,
+    "fp_reasons": {
+      "too_short_no_content": 58,
+      "refusal_pivot_with_safety_framing": 5,
+      "prompt_echo": 8,
+      "non_answer_opener": 1
+    }
+  },
+  "v5t_maq_g2a5": {
+    "total": 162,
+    "auto_fp": 131,
+    "borderline_n": 31,
+    "fp_reasons": {
+      "prompt_echo": 31,
+      "too_short_no_content": 89,
+      "non_answer_opener": 7,
+      "refusal_pivot_with_safety_framing": 3,
+      "satire_fictional_framing": 1
+    }
+  },
+  "v5t_maq_g1a5": {
+    "total": 315,
+    "auto_fp": 202,
+    "borderline_n": 113,
+    "fp_reasons": {
+      "too_short_no_content": 152,
+      "prompt_echo": 33,
+      "degenerate_loop": 2,
+      "refusal_pivot_with_safety_framing": 13,
+      "non_answer_opener": 2
+    }
+  },
+  "v5t_maq_g4a15": {
+    "total": 582,
+    "auto_fp": 551,
+    "borderline_n": 31,
+    "fp_reasons": {
+      "too_short_no_content": 405,
+      "non_answer_opener": 114,
+      "refusal_pivot_with_safety_framing": 11,
+      "prompt_echo": 18,
+      "satire_fictional_framing": 3
+    }
+  },
+  "alt_refusal": {
+    "total": 232,
+    "auto_fp": 206,
+    "borderline_n": 26,
+    "fp_reasons": {
+      "refusal_pivot": 119,
+      "prompt_echo": 8,
+      "refusal_pivot_with_safety_framing": 19,
+      "too_short_no_content": 43,
+      "non_answer_opener": 15,
+      "satire_fictional_framing": 2
+    }
+  }
+}

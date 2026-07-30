@@ -1,0 +1,23 @@
+{
+  "base_model": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "adapter": "/home/wertheizer/advers_project/phase3/saved_results/llama3/adapter",
+  "model_type": "llama3",
+  "self_label": "Llama3-8b",
+  "suffix_json": "/home/wertheizer/advers_project/phase3/release/anchor-rep/attack_artifacts/advbench_suffixes_all_models.json",
+  "harmful_prompts_json": "/home/wertheizer/advers_project/phase3/release/anchor-rep/data/advbench_train_split.json",
+  "layer": 16,
+  "ks": [
+    0,
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "n_prompts": 60,
+  "max_new_tokens": 96,
+  "dtype": "bf16",
+  "out": "runs/06_basesubspace/llama3_20260627_185103",
+  "seed": 42
+}

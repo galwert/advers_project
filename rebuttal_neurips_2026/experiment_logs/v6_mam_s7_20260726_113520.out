@@ -1,0 +1,27 @@
+[*] device=cuda
+[*] defender=meta-llama/Meta-Llama-3-8B-Instruct type=llama3
+[*] anchor1=microsoft/Phi-3-medium-4k-instruct type=phi3
+[*] anchor2=mistralai/Mistral-7B-Instruct-v0.2 type=mistral
+[+] Loaded 200 borderline prompts from xstest
+[*] 30 harmful, 200 borderline, 500 benign
+
+[*] === anchor 1: microsoft/Phi-3-medium-4k-instruct ===
+`flash-attention` package not found, consider installing for better performance: import of flash_attn halted; None in sys.modules.
+Current `flash-attenton` does not support `window_size`. Either upgrade or use `attn_implementation='eager'`.
+Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:02<00:11,  2.39s/it]Loading checkpoint shards:  33%|███▎      | 2/6 [00:03<00:07,  1.89s/it]Loading checkpoint shards:  50%|█████     | 3/6 [00:05<00:05,  1.73s/it]Loading checkpoint shards:  67%|██████▋   | 4/6 [00:06<00:03,  1.61s/it]Loading checkpoint shards:  67%|██████▋   | 4/6 [00:07<00:03,  1.87s/it]
+Traceback (most recent call last):
+  File "/home/wertheizer/advers_project/experiments/11_run_two_anchor.py", line 180, in <module>
+    main()
+  File "/home/wertheizer/advers_project/experiments/11_run_two_anchor.py", line 101, in main
+    anc1 = AutoModelForCausalLM.from_pretrained(
+  File "/home/wertheizer/miniforge3/envs/defense_env/lib/python3.10/site-packages/transformers/models/auto/auto_factory.py", line 559, in from_pretrained
+    return model_class.from_pretrained(
+  File "/home/wertheizer/miniforge3/envs/defense_env/lib/python3.10/site-packages/transformers/modeling_utils.py", line 4264, in from_pretrained
+    ) = cls._load_pretrained_model(
+  File "/home/wertheizer/miniforge3/envs/defense_env/lib/python3.10/site-packages/transformers/modeling_utils.py", line 4777, in _load_pretrained_model
+    new_error_msgs, offload_index, state_dict_index = _load_state_dict_into_meta_model(
+  File "/home/wertheizer/miniforge3/envs/defense_env/lib/python3.10/site-packages/transformers/modeling_utils.py", line 942, in _load_state_dict_into_meta_model
+    set_module_tensor_to_device(model, param_name, param_device, **set_module_kwargs)
+  File "/home/wertheizer/miniforge3/envs/defense_env/lib/python3.10/site-packages/accelerate/utils/modeling.py", line 343, in set_module_tensor_to_device
+    new_value = value.to(device, non_blocking=non_blocking)
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 50.00 MiB. GPU 0 has a total capacity of 94.97 GiB of which 49.50 MiB is free. Process 1270019 has 73.81 GiB memory in use. Including non-PyTorch memory, this process has 21.10 GiB memory in use. Of the allocated memory 20.56 GiB is allocated by PyTorch, and 1.38 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

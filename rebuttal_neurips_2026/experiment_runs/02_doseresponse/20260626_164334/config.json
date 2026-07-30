@@ -1,0 +1,24 @@
+{
+  "base_model": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "adapter": "/home/wertheizer/advers_project/phase3/saved_results/llama3/adapter",
+  "suffix_json": "/home/wertheizer/advers_project/phase3/release/anchor-rep/attack_artifacts/advbench_suffixes_all_models.json",
+  "harmful_prompts_json": "/home/wertheizer/advers_project/phase3/release/anchor-rep/data/advbench_train_split.json",
+  "layers": [
+    10,
+    16
+  ],
+  "alphas": [
+    0.0,
+    1.0,
+    2.0,
+    4.0,
+    8.0,
+    16.0
+  ],
+  "n_prompts": 60,
+  "n_refusal_prompts": 15,
+  "max_new_tokens": 96,
+  "dtype": "bf16",
+  "out": "runs/02_doseresponse/20260626_164334",
+  "seed": 42
+}

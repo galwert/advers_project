@@ -1,0 +1,18 @@
+{
+  "target_model": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "layer_idx": 16,
+  "n_entries": 50,
+  "spearman_loss_vs_proj": {
+    "rho": -0.0875390156062425,
+    "p": 0.5455109665291389
+  },
+  "low_loss_proj_mean": -0.008076767508800212,
+  "low_loss_proj_std": 0.24381331086090502,
+  "high_loss_proj_mean": -0.09365778774596177,
+  "high_loss_proj_std": 0.2123781517858916,
+  "mannwhitney_low_vs_high": {
+    "U": 94.0,
+    "p": 0.6444123337698114
+  },
+  "fraction_negative_proj": 0.58
+}

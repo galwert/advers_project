@@ -1,0 +1,25 @@
+{
+  "config": {
+    "alpha": 0.5,
+    "beta": 1.0,
+    "gamma": 2.0,
+    "delta": 0.0,
+    "epsilon": 0.4,
+    "zeta": 0.0,
+    "reroute": 0.0,
+    "l2_retain": 0.0,
+    "coeff_schedule": false,
+    "borderline_oversample": 1,
+    "cka_scope": "harmful_only",
+    "stage2_steps": 200,
+    "lora_r": 32
+  },
+  "final": {
+    "refusal": -0.8926115846633911,
+    "anchor": 0.6048867857456207,
+    "coherency": 0.03932348162867129,
+    "kl": 0.33837338134646416,
+    "sep": 0.0,
+    "l2_retain": 0.0
+  }
+}

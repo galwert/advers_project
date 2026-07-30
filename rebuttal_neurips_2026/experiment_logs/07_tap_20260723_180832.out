@@ -1,0 +1,61 @@
+/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/torch/cuda/__init__.py:56: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+[*] device=cuda
+[*] loading judge allenai/wildguard
+/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/file_download.py:949: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+Traceback (most recent call last):
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1550, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1467, in get_hf_file_metadata
+    r = _request_wrapper(
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 283, in _request_wrapper
+    response = _request_wrapper(
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 306, in _request_wrapper
+    response = http_backoff(method=method, url=url, **params)
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/utils/_http.py", line 307, in http_backoff
+    response = session.request(method=method, url=url, **kwargs)
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/requests/sessions.py", line 592, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/requests/sessions.py", line 706, in send
+    r = adapter.send(request, **kwargs)
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/utils/_http.py", line 107, in send
+    raise OfflineModeIsEnabled(
+huggingface_hub.errors.OfflineModeIsEnabled: Cannot reach https://huggingface.co/allenai/wildguard/resolve/main/config.json: offline mode is enabled. To disable it, please unset the `HF_HUB_OFFLINE` environment variable.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/transformers/utils/hub.py", line 398, in cached_file
+    resolved_file = hf_hub_download(
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1014, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1121, in _hf_hub_download_to_cache_dir
+    _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1665, in _raise_on_head_call_error
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: An error happened while trying to locate the file on the Hub and we cannot find the requested files in the local cache. Please check your connection and try again or make sure your Internet connection is on.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wertheizer/advers_project/experiments/07_tap_phi3_wg_rejudge.py", line 145, in <module>
+    main()
+  File "/home/wertheizer/advers_project/experiments/07_tap_phi3_wg_rejudge.py", line 68, in main
+    tok = AutoTokenizer.from_pretrained(a.judge, use_fast=False)
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/transformers/models/auto/tokenization_auto.py", line 819, in from_pretrained
+    config = AutoConfig.from_pretrained(
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/transformers/models/auto/configuration_auto.py", line 928, in from_pretrained
+    config_dict, unused_kwargs = PretrainedConfig.get_config_dict(pretrained_model_name_or_path, **kwargs)
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/transformers/configuration_utils.py", line 631, in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/transformers/configuration_utils.py", line 686, in _get_config_dict
+    resolved_config_file = cached_file(
+  File "/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/transformers/utils/hub.py", line 441, in cached_file
+    raise EnvironmentError(
+OSError: We couldn't connect to 'https://huggingface.co' to load this file, couldn't find it in the cached files and it looks like allenai/wildguard is not the path to a directory containing a file named config.json.
+Checkout your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.

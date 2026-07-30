@@ -1,0 +1,15 @@
+[*] device=cuda
+[*] defender=meta-llama/Meta-Llama-3-8B-Instruct type=llama3
+[*] anchor1=microsoft/Phi-3-medium-4k-instruct type=phi3
+[*] anchor2=Qwen/Qwen1.5-7B-Chat type=qwen
+[+] Loaded 200 borderline prompts from xstest
+[*] 30 harmful, 200 borderline, 500 benign
+
+[*] === anchor 1: microsoft/Phi-3-medium-4k-instruct ===
+`flash-attention` package not found, consider installing for better performance: import of flash_attn halted; None in sys.modules.
+Current `flash-attenton` does not support `window_size`. Either upgrade or use `attn_implementation='eager'`.
+Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:10<00:52, 10.44s/it]Loading checkpoint shards:  33%|███▎      | 2/6 [00:20<00:40, 10.16s/it]Loading checkpoint shards:  50%|█████     | 3/6 [00:29<00:29,  9.85s/it]Loading checkpoint shards:  67%|██████▋   | 4/6 [00:38<00:19,  9.55s/it]Loading checkpoint shards:  83%|████████▎ | 5/6 [00:48<00:09,  9.47s/it]Loading checkpoint shards: 100%|██████████| 6/6 [00:55<00:00,  8.62s/it]Loading checkpoint shards: 100%|██████████| 6/6 [00:55<00:00,  9.21s/it]
+    layers=40 target=20
+[*] Pre-computing anchor hidden states for 730 unique prompts, 1 layers...
+Anchor cache:   0%|          | 0/730 [00:00<?, ?it/s]You are not running the flash-attention implementation, expect numerical differences.
+Anchor cache:   0%|          | 1/730 [00:01<20:04,  1.65s/it]Anchor cache:   0%|          | 3/730 [00:01<05:52,  2.06it/s]Anchor cache:   1%|          | 5/730 [00:01<03:17,  3.67it/s]Anchor cache:   1%|          | 7/730 [00:02<02:10,  5.52it/s]Anchor cache:   1%|          | 9/730 [00:02<01:40,  7.18it/s]Anchor cache:   2%|▏         | 11/730 [00:02<01:20,  8.95it/s]Anchor cache:   2%|▏         | 13/730 [00:02<01:07, 10.65it/s]Anchor cache:   2%|▏         | 15/730 [00:02<00:57, 12.43it/s]Anchor cache:   2%|▏         | 17/730 [00:02<00:52, 13.59it/s]Anchor cache:   3%|▎         | 19/730 [00:02<00:48, 14.80it/s]Anchor cache:   3%|▎         | 21/730 [00:02<00:45, 15.66it/s]Anchor cache:   3%|▎         | 23/730 [00:02<00:43, 16.26it/s]Anchor cache:   3%|▎         | 25/730 [00:03<00:42, 16.78it/s]Anchor cache:   4%|▎         | 27/730 [00:03<00:40, 17.38it/s]Anchor cache:   4%|▍         | 29/730 [00:03<00:40, 17.51it/s]Anchor cache:   4%|▍         | 31/730 [00:03<00:38, 17.97it/s]Anchor cache:   5%|▍         | 33/730 [00:03<00:39, 17.69it/s]Anchor cache:   5%|▍         | 35/730 [00:03<00:38, 17.93it/s]slurmstepd: error: *** JOB 68315897 ON nlp-h200-1 CANCELLED AT 2026-07-24T12:27:15 ***

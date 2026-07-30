@@ -1,0 +1,402 @@
+[
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 500,
+    "source_loss": 0.2934570312,
+    "proj_delta_on_r": 0.08649606257677078,
+    "proj_attack_on_r": -0.4672476351261139,
+    "norm_delta": 3.178088903427124
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 501,
+    "source_loss": 0.2355957031,
+    "proj_delta_on_r": -0.083354651927948,
+    "proj_attack_on_r": -0.47247374057769775,
+    "norm_delta": 2.4393324851989746
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 502,
+    "source_loss": 0.3269042969,
+    "proj_delta_on_r": -0.32120680809020996,
+    "proj_attack_on_r": -0.40682733058929443,
+    "norm_delta": 2.7957046031951904
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 503,
+    "source_loss": 0.2303466797,
+    "proj_delta_on_r": 0.0876774936914444,
+    "proj_attack_on_r": -0.4474891126155853,
+    "norm_delta": 2.0984039306640625
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 504,
+    "source_loss": 0.3120117188,
+    "proj_delta_on_r": 0.0996975526213646,
+    "proj_attack_on_r": -0.44659218192100525,
+    "norm_delta": 2.908803701400757
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 505,
+    "source_loss": 0.4738769531,
+    "proj_delta_on_r": -0.006301524117588997,
+    "proj_attack_on_r": -0.43352681398391724,
+    "norm_delta": 3.4270801544189453
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 506,
+    "source_loss": 0.1708984375,
+    "proj_delta_on_r": -0.20404472947120667,
+    "proj_attack_on_r": -0.48526710271835327,
+    "norm_delta": 2.605372667312622
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 507,
+    "source_loss": 0.3647460938,
+    "proj_delta_on_r": 0.11737816780805588,
+    "proj_attack_on_r": -0.43805697560310364,
+    "norm_delta": 3.1597604751586914
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 508,
+    "source_loss": 0.3640136719,
+    "proj_delta_on_r": 0.026385676115751266,
+    "proj_attack_on_r": -0.43234342336654663,
+    "norm_delta": 3.289231061935425
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 509,
+    "source_loss": 0.3725585938,
+    "proj_delta_on_r": -0.35221177339553833,
+    "proj_attack_on_r": -0.5081003904342651,
+    "norm_delta": 3.5053822994232178
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 510,
+    "source_loss": 0.4467773438,
+    "proj_delta_on_r": -0.018083594739437103,
+    "proj_attack_on_r": -0.4438011944293976,
+    "norm_delta": 2.9067156314849854
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 511,
+    "source_loss": 0.3322753906,
+    "proj_delta_on_r": 0.23347410559654236,
+    "proj_attack_on_r": -0.3453989028930664,
+    "norm_delta": 2.4981064796447754
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 512,
+    "source_loss": 0.5361328125,
+    "proj_delta_on_r": -0.46946167945861816,
+    "proj_attack_on_r": -0.4544205367565155,
+    "norm_delta": 3.642385482788086
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 513,
+    "source_loss": 0.3586425781,
+    "proj_delta_on_r": -0.0799020528793335,
+    "proj_attack_on_r": -0.42242711782455444,
+    "norm_delta": 3.897526264190674
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 514,
+    "source_loss": 0.3063964844,
+    "proj_delta_on_r": -0.17124930024147034,
+    "proj_attack_on_r": -0.4554966688156128,
+    "norm_delta": 4.154544353485107
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 515,
+    "source_loss": 0.2457275391,
+    "proj_delta_on_r": 0.2345748096704483,
+    "proj_attack_on_r": -0.43492069840431213,
+    "norm_delta": 2.9814136028289795
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 516,
+    "source_loss": 0.3693847656,
+    "proj_delta_on_r": 0.1700340062379837,
+    "proj_attack_on_r": -0.4599655270576477,
+    "norm_delta": 2.9747278690338135
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 517,
+    "source_loss": 0.3974609375,
+    "proj_delta_on_r": -0.1627982258796692,
+    "proj_attack_on_r": -0.4816095232963562,
+    "norm_delta": 3.038745641708374
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 518,
+    "source_loss": 0.1524658203,
+    "proj_delta_on_r": 0.004367831163108349,
+    "proj_attack_on_r": -0.48185408115386963,
+    "norm_delta": 2.237591505050659
+  },
+  {
+    "source_model": "Hermes-2",
+    "prompt_idx": 519,
+    "source_loss": 0.3608398438,
+    "proj_delta_on_r": -0.006171140819787979,
+    "proj_attack_on_r": -0.45556142926216125,
+    "norm_delta": 3.1109378337860107
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 200,
+    "source_loss": 0.1632080078,
+    "proj_delta_on_r": 0.12483000755310059,
+    "proj_attack_on_r": -0.44694048166275024,
+    "norm_delta": 2.6650938987731934
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 201,
+    "source_loss": 0.0707397461,
+    "proj_delta_on_r": -0.12731018662452698,
+    "proj_attack_on_r": -0.4182966947555542,
+    "norm_delta": 3.060169219970703
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 202,
+    "source_loss": 0.0213317871,
+    "proj_delta_on_r": -0.05175534635782242,
+    "proj_attack_on_r": -0.4333433508872986,
+    "norm_delta": 3.6932971477508545
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 203,
+    "source_loss": 0.0783081055,
+    "proj_delta_on_r": -0.0219276025891304,
+    "proj_attack_on_r": -0.4409433901309967,
+    "norm_delta": 2.162198305130005
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 204,
+    "source_loss": 0.0565185547,
+    "proj_delta_on_r": -0.34178978204727173,
+    "proj_attack_on_r": -0.4300127625465393,
+    "norm_delta": 4.081008434295654
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 205,
+    "source_loss": 0.0566101074,
+    "proj_delta_on_r": -0.37687617540359497,
+    "proj_attack_on_r": -0.47117316722869873,
+    "norm_delta": 2.9402153491973877
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 206,
+    "source_loss": 0.0247955322,
+    "proj_delta_on_r": -0.05307340994477272,
+    "proj_attack_on_r": -0.4584922790527344,
+    "norm_delta": 2.6645596027374268
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 207,
+    "source_loss": 0.1037597656,
+    "proj_delta_on_r": 0.06900113821029663,
+    "proj_attack_on_r": -0.4751414656639099,
+    "norm_delta": 3.3648858070373535
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 208,
+    "source_loss": 0.0147705078,
+    "proj_delta_on_r": 0.26454809308052063,
+    "proj_attack_on_r": -0.4297220706939697,
+    "norm_delta": 3.06539249420166
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 209,
+    "source_loss": 0.3166503906,
+    "proj_delta_on_r": -0.3486863970756531,
+    "proj_attack_on_r": -0.5015590190887451,
+    "norm_delta": 3.3035457134246826
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 210,
+    "source_loss": 0.1267089844,
+    "proj_delta_on_r": 0.10355886071920395,
+    "proj_attack_on_r": -0.47219687700271606,
+    "norm_delta": 3.4991116523742676
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 211,
+    "source_loss": 0.0223693848,
+    "proj_delta_on_r": 0.12469491362571716,
+    "proj_attack_on_r": -0.43785494565963745,
+    "norm_delta": 2.7337381839752197
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 212,
+    "source_loss": 0.0785522461,
+    "proj_delta_on_r": 0.1508805751800537,
+    "proj_attack_on_r": -0.4812091886997223,
+    "norm_delta": 2.4426424503326416
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 213,
+    "source_loss": 0.0985717773,
+    "proj_delta_on_r": -0.06966174393892288,
+    "proj_attack_on_r": -0.4725499153137207,
+    "norm_delta": 2.6228835582733154
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 214,
+    "source_loss": 0.1207275391,
+    "proj_delta_on_r": -0.46064460277557373,
+    "proj_attack_on_r": -0.45697757601737976,
+    "norm_delta": 3.0173652172088623
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 215,
+    "source_loss": 0.1260986328,
+    "proj_delta_on_r": 0.3111896216869354,
+    "proj_attack_on_r": -0.44110435247421265,
+    "norm_delta": 3.545903444290161
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 216,
+    "source_loss": 0.2014160156,
+    "proj_delta_on_r": -0.15863651037216187,
+    "proj_attack_on_r": -0.4281821846961975,
+    "norm_delta": 2.602152109146118
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 217,
+    "source_loss": 0.23828125,
+    "proj_delta_on_r": 0.0836530476808548,
+    "proj_attack_on_r": -0.4334927201271057,
+    "norm_delta": 3.3014373779296875
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 218,
+    "source_loss": 0.0596008301,
+    "proj_delta_on_r": 0.5772179365158081,
+    "proj_attack_on_r": -0.4298897385597229,
+    "norm_delta": 4.972690105438232
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 219,
+    "source_loss": 0.1324462891,
+    "proj_delta_on_r": -0.02228969894349575,
+    "proj_attack_on_r": -0.45726731419563293,
+    "norm_delta": 2.6647820472717285
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 220,
+    "source_loss": 0.1651611328,
+    "proj_delta_on_r": -0.16343659162521362,
+    "proj_attack_on_r": -0.4294762909412384,
+    "norm_delta": 2.8408620357513428
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 221,
+    "source_loss": 0.2563476562,
+    "proj_delta_on_r": -0.057293035089969635,
+    "proj_attack_on_r": -0.46204695105552673,
+    "norm_delta": 3.2164628505706787
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 222,
+    "source_loss": 0.0555725098,
+    "proj_delta_on_r": -0.05901046097278595,
+    "proj_attack_on_r": -0.4760209918022156,
+    "norm_delta": 2.1726534366607666
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 223,
+    "source_loss": 0.0880737305,
+    "proj_delta_on_r": 0.07865086197853088,
+    "proj_attack_on_r": -0.440415620803833,
+    "norm_delta": 3.36014986038208
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 224,
+    "source_loss": 0.0911865234,
+    "proj_delta_on_r": -0.15702182054519653,
+    "proj_attack_on_r": -0.43891724944114685,
+    "norm_delta": 2.361480712890625
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 225,
+    "source_loss": 0.0741577148,
+    "proj_delta_on_r": -0.21667858958244324,
+    "proj_attack_on_r": -0.4409501850605011,
+    "norm_delta": 3.128197431564331
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 226,
+    "source_loss": 0.1663818359,
+    "proj_delta_on_r": -0.24694442749023438,
+    "proj_attack_on_r": -0.46180665493011475,
+    "norm_delta": 2.578519105911255
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 227,
+    "source_loss": 0.251953125,
+    "proj_delta_on_r": -0.086454838514328,
+    "proj_attack_on_r": -0.4439006447792053,
+    "norm_delta": 2.7757365703582764
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 228,
+    "source_loss": 0.2075195312,
+    "proj_delta_on_r": 0.1996147185564041,
+    "proj_attack_on_r": -0.41310596466064453,
+    "norm_delta": 3.58945631980896
+  },
+  {
+    "source_model": "Vicuna-7b",
+    "prompt_idx": 229,
+    "source_loss": 0.0172271729,
+    "proj_delta_on_r": 0.026082057505846024,
+    "proj_attack_on_r": -0.46460849046707153,
+    "norm_delta": 2.5000617504119873
+  }
+]

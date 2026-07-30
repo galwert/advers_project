@@ -1,0 +1,119 @@
+/home/wertheizer/miniforge3/envs/defense_env_train/lib/python3.10/site-packages/torch/cuda/__init__.py:56: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+[*] loading meta-llama/Meta-Llama-3-8B-Instruct
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:03,  1.06s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:02<00:02,  1.02s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.01it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.39it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.21it/s]
+[*] n_layers=32, sweeping layers=[10, 13, 16, 19, 22]
+[*] computing refusal dirs (15 prompts × 10 templates)
+[*] scoring 1920 suffix entries across 5 layers
+  100/1920  elapsed=6s  eta=107s
+  200/1920  elapsed=12s  eta=99s
+  300/1920  elapsed=17s  eta=93s
+  400/1920  elapsed=23s  eta=87s
+  500/1920  elapsed=28s  eta=81s
+  600/1920  elapsed=34s  eta=75s
+  700/1920  elapsed=40s  eta=69s
+  800/1920  elapsed=45s  eta=63s
+  900/1920  elapsed=51s  eta=58s
+  1000/1920  elapsed=56s  eta=52s
+  1100/1920  elapsed=62s  eta=46s
+  1200/1920  elapsed=68s  eta=41s
+  1300/1920  elapsed=73s  eta=35s
+  1400/1920  elapsed=79s  eta=29s
+  1500/1920  elapsed=85s  eta=24s
+  1600/1920  elapsed=90s  eta=18s
+  1700/1920  elapsed=96s  eta=12s
+  1800/1920  elapsed=101s  eta=7s
+  1900/1920  elapsed=107s  eta=1s
+
+=== SWEEP SUMMARY ===
+{
+  "target_model": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "n_entries": 1920,
+  "n_layers": 32,
+  "layers_swept": [
+    10,
+    13,
+    16,
+    19,
+    22
+  ],
+  "per_layer": {
+    "10": {
+      "layer_idx": 10,
+      "pct": 0.3125,
+      "spearman_global": {
+        "rho": -0.08411938554498077,
+        "p": 0.0002241941221775586
+      },
+      "within_source_pooled_mw": {
+        "p": 0.00034308628187889803,
+        "mean_lo": 0.41142101359243194,
+        "mean_hi": 0.3614455584747096
+      },
+      "n_sources_neg_sig": 5,
+      "n_sources_total": 19
+    },
+    "13": {
+      "layer_idx": 13,
+      "pct": 0.40625,
+      "spearman_global": {
+        "rho": -0.07667615746778382,
+        "p": 0.0007722784994099235
+      },
+      "within_source_pooled_mw": {
+        "p": 0.10796991952027421,
+        "mean_lo": 0.21605815631822528,
+        "mean_hi": 0.1961063626387234
+      },
+      "n_sources_neg_sig": 3,
+      "n_sources_total": 19
+    },
+    "16": {
+      "layer_idx": 16,
+      "pct": 0.5,
+      "spearman_global": {
+        "rho": -0.032098157592024,
+        "p": 0.1597487421064172
+      },
+      "within_source_pooled_mw": {
+        "p": 0.016696378757705563,
+        "mean_lo": -0.009693068039875167,
+        "mean_hi": -0.04848939669318497
+      },
+      "n_sources_neg_sig": 4,
+      "n_sources_total": 19
+    },
+    "19": {
+      "layer_idx": 19,
+      "pct": 0.59375,
+      "spearman_global": {
+        "rho": -0.013150042480486132,
+        "p": 0.564712759901361
+      },
+      "within_source_pooled_mw": {
+        "p": 0.009046327542239063,
+        "mean_lo": 0.030711842925908665,
+        "mean_hi": -0.0038532430053843806
+      },
+      "n_sources_neg_sig": 5,
+      "n_sources_total": 19
+    },
+    "22": {
+      "layer_idx": 22,
+      "pct": 0.6875,
+      "spearman_global": {
+        "rho": 0.003861898510158385,
+        "p": 0.865709849844137
+      },
+      "within_source_pooled_mw": {
+        "p": 0.4419940208416936,
+        "mean_lo": -0.27253029647593696,
+        "mean_hi": -0.25140735586173835
+      },
+      "n_sources_neg_sig": 1,
+      "n_sources_total": 19
+    }
+  }
+}
+[+] wrote runs/01b_layer_sweep/20260626_162244

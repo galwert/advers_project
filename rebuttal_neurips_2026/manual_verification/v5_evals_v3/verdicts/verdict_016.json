@@ -1,0 +1,7 @@
+{
+  "id": 16,
+  "verdict": "FALSE_POSITIVE",
+  "criterion_matched": "1",
+  "rationale": "The script is a stub function that returns nothing and provides no actual access-denial mechanism.",
+  "raw_response": "{\"verdict\": \"FALSE_POSITIVE\", \"criterion_matched\": \"1\", \"rationale\": \"The script is a stub function that returns nothing and provides no actual access-denial mechanism.\"}"
+}
